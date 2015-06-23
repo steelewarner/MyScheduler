@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* Author: Steele Warner
+ * Created: June 9, 2015
+ * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -177,7 +181,8 @@ namespace MyScheduler
         }
         public override bool Equals(object obj)
         {
-            if (this.Name.Equals(((Task)obj).Name) && this.Description.Equals(((Task)obj).Description))
+            if (this.Name.Equals(((Task)obj).Name) && this.Description.Equals(((Task)obj).Description)
+                    && this.GetDate().Equals(((Task)obj).GetDate())) 
             { return true; }
             return false;
         }

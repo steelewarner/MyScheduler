@@ -38,6 +38,7 @@
             this.addTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ScheduleTab = new System.Windows.Forms.TabPage();
+            this.ListViewSchedule = new System.Windows.Forms.ListView();
             this.MediaTab = new System.Windows.Forms.TabPage();
             this.Toolbar = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,6 +54,7 @@
             this.CalendarTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).BeginInit();
             this.TaskCalendarContextMenuStrip.SuspendLayout();
+            this.ScheduleTab.SuspendLayout();
             this.Toolbar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -131,9 +133,11 @@
             this.removeTaskToolStripMenuItem.Name = "removeTaskToolStripMenuItem";
             this.removeTaskToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.removeTaskToolStripMenuItem.Text = "Remove Task";
+            this.removeTaskToolStripMenuItem.Click += new System.EventHandler(this.removeTaskToolStripMenuItem_Click);
             // 
             // ScheduleTab
             // 
+            this.ScheduleTab.Controls.Add(this.ListViewSchedule);
             this.ScheduleTab.Location = new System.Drawing.Point(4, 22);
             this.ScheduleTab.Name = "ScheduleTab";
             this.ScheduleTab.Padding = new System.Windows.Forms.Padding(3);
@@ -142,6 +146,15 @@
             this.ScheduleTab.Text = "Schedule";
             this.ScheduleTab.UseVisualStyleBackColor = true;
             this.ScheduleTab.Click += new System.EventHandler(this.ScheduleTab_Click);
+            // 
+            // ListViewSchedule
+            // 
+            this.ListViewSchedule.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ListViewSchedule.Location = new System.Drawing.Point(3, 3);
+            this.ListViewSchedule.Name = "ListViewSchedule";
+            this.ListViewSchedule.Size = new System.Drawing.Size(614, 422);
+            this.ListViewSchedule.TabIndex = 0;
+            this.ListViewSchedule.UseCompatibleStateImageBehavior = false;
             // 
             // MediaTab
             // 
@@ -260,6 +273,7 @@
             this.CalendarTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).EndInit();
             this.TaskCalendarContextMenuStrip.ResumeLayout(false);
+            this.ScheduleTab.ResumeLayout(false);
             this.Toolbar.ResumeLayout(false);
             this.Toolbar.PerformLayout();
             this.ResumeLayout(false);
@@ -287,6 +301,7 @@
         private System.Windows.Forms.ContextMenuStrip TaskCalendarContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem addTaskToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeTaskToolStripMenuItem;
+        private System.Windows.Forms.ListView ListViewSchedule;
     }
 }
 

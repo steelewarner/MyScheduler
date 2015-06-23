@@ -1,4 +1,11 @@
-﻿using System;
+﻿/* Author: Steele Warner
+ * Created: June 9, 2015
+ * Info: This is the Form program for the base UI for MyScheduler app
+ * Last Updated: 6/23/2015
+ * version: v0.2.1
+ */
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -86,6 +93,7 @@ namespace MyScheduler
         private void User_TaskCreated(object sender, EventArgs e)
         {
             UpdateTaskCalendar(((TaskEventArgs)e).ArgsTask);
+            UpdateTaskScheduler(((TaskEventArgs)e).ArgsTask);
         }
 
         private void UpdateTaskCalendar(Task t)
@@ -95,8 +103,39 @@ namespace MyScheduler
                 DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.GetDate());
                 int row = (int)(t.GetDate().Day / 7);
                 int column = ((int)firstday + t.GetDate().Day - 1) % 7;
-                TaskCalendar.Rows[row].Cells[column].Value += t.Name;
+                TaskCalendar.Rows[row].Cells[column].Value += t.Name + Environment.NewLine;
                 TaskCalendar.Rows[row].Cells[column].Tag = t;
+            }
+        }
+
+        private void UpdateTaskScheduler(Task t)
+        {
+            ListViewItem itm = new ListViewItem(t.GetType().Name);
+            itm.SubItems.Add(t.Name);
+            itm.SubItems.Add(t.GetDate().ToString());
+            itm.SubItems.Add(t.Description);
+            ListViewSchedule.Items.Add(itm);
+        }
+
+        private void ListViewScheduleInitializer()
+        {
+            ListViewSchedule.View = View.Details;
+
+            ColumnHeader[] colhead = new ColumnHeader[4];
+            colhead[0].Text = "Task";
+            colhead[1].Text = "Name";
+            colhead[2].Text = "Date";
+            colhead[3].Text = "Description";
+
+            ListViewSchedule.Columns.AddRange(colhead);
+
+            foreach (Task t in User.Tasklist)
+            {
+                ListViewItem itm = new ListViewItem(t.GetType().Name);
+                itm.SubItems.Add(t.Name);
+                itm.SubItems.Add(t.GetDate().ToString());
+                itm.SubItems.Add(t.Description);
+                ListViewSchedule.Items.Add(itm);
             }
         }
 
@@ -135,6 +174,7 @@ namespace MyScheduler
             /******************************
                    TabSchedule Setup
              ******************************/
+            ListViewScheduleInitializer();
 
             /******************************
                     TabMedia Setup
@@ -195,6 +235,11 @@ namespace MyScheduler
                     this.Text = User.FirstName + " " +  User.LastName;
                 }
             }
+        }
+
+        private void removeTaskToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
         }
     }
 }
