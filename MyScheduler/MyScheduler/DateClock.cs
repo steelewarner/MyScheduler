@@ -74,5 +74,11 @@ namespace MyScheduler
         {
             t.Show(((Control)sender).Text, this, ((Control)sender).Location.X, ((Control)sender).Location.Y + ((Control)sender).Height, 1000);
         }
+
+        public DateTime ParseDateClock()
+        {
+            return new DateTime(int.Parse(textBox3.Text), int.Parse(textBox1.Text),
+                int.Parse(textBox2.Text), int.Parse(textBox4.Text), int.Parse(textBox5.Text), 0);
+        }
     }
 }

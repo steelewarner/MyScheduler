@@ -1,9 +1,10 @@
-﻿/* Author: Steele Warner
+﻿/* ************************************************************************
+ * Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
- * Last Updated: 6/23/2015
- * version: v0.2.1
- */
+ * Last Updated: 6/25/2015
+ * version: v0.3.3
+ * ***********************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Threading;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace MyScheduler
 {
@@ -25,6 +28,11 @@ namespace MyScheduler
         private MySchedulerUser User;
         private bool LoadUserOnSetup;
         private string SettingsURI;
+        private Process videoplayer;
+        /// <summary>
+        /// Value used for space between bordering controls
+        /// </summary>
+        private const int control_padding = 3;
 
         public MySchedulerForm()
         {
@@ -98,11 +106,11 @@ namespace MyScheduler
 
         private void UpdateTaskCalendar(Task t)
         {
-            if ((int)MonthLabel.Tag == t.GetDate().Month)
+            if ((int)MonthLabel.Tag == t.Date.Month)
             {
-                DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.GetDate());
-                int row = (int)(t.GetDate().Day / 7);
-                int column = ((int)firstday + t.GetDate().Day - 1) % 7;
+                DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.Date);
+                int row = (int)(t.Date.Day / 7);
+                int column = ((int)firstday + t.Date.Day - 1) % 7;
                 TaskCalendar.Rows[row].Cells[column].Value += t.Name + Environment.NewLine;
                 TaskCalendar.Rows[row].Cells[column].Tag = t;
             }
@@ -110,30 +118,24 @@ namespace MyScheduler
 
         private void UpdateTaskScheduler(Task t)
         {
-            ListViewItem itm = new ListViewItem(t.GetType().Name);
-            itm.SubItems.Add(t.Name);
-            itm.SubItems.Add(t.GetDate().ToString());
-            itm.SubItems.Add(t.Description);
-            ListViewSchedule.Items.Add(itm);
+            string[] subitms = { t.Name, t.Date.ToString(), t.Description };
+            ListViewSchedule.Items.Add(t.GetType().Name).SubItems.AddRange(subitms);
         }
 
         private void ListViewScheduleInitializer()
         {
             ListViewSchedule.View = View.Details;
 
-            ColumnHeader[] colhead = new ColumnHeader[4];
-            colhead[0].Text = "Task";
-            colhead[1].Text = "Name";
-            colhead[2].Text = "Date";
-            colhead[3].Text = "Description";
-
-            ListViewSchedule.Columns.AddRange(colhead);
+            ListViewSchedule.Columns.Add("Task", 200, HorizontalAlignment.Center);
+            ListViewSchedule.Columns.Add("Name", 200, HorizontalAlignment.Center);
+            ListViewSchedule.Columns.Add("Date", 200, HorizontalAlignment.Center);
+            ListViewSchedule.Columns.Add("Description", 200, HorizontalAlignment.Left);
 
             foreach (Task t in User.Tasklist)
             {
                 ListViewItem itm = new ListViewItem(t.GetType().Name);
                 itm.SubItems.Add(t.Name);
-                itm.SubItems.Add(t.GetDate().ToString());
+                itm.SubItems.Add(t.Date.ToString());
                 itm.SubItems.Add(t.Description);
                 ListViewSchedule.Items.Add(itm);
             }
@@ -179,17 +181,58 @@ namespace MyScheduler
             /******************************
                     TabMedia Setup
              ******************************/
-
+            MediaTab.Resize += MediaTab_Resize;
+            MediaTab_Resize(this, new EventArgs());
+            User.MediaAdded += User_MediaAdded;
+            panel1.Controls.Add(new AddAnime());
+            ((AddAnime)panel1.Controls["AddAnime"]).AcceptButton.Click += AddAnimeAcceptButton_Click;
+            //Will add more controls after i have created them
         }
 
-        #region TabCalendar
+        void User_MediaAdded(object sender, EventArgs e)
+        {
+            
+        }
+
+        void AddAnimeAcceptButton_Click(object sender, EventArgs e)
+        {
+            AddAnime japanesecartoon = panel1.Controls["AddAnime"] as AddAnime;
+            if (japanesecartoon.Result == DialogResult.OK)
+            {
+                Anime otaku = new Anime(japanesecartoon.TitleTextbox.Text, japanesecartoon.Date, (int)japanesecartoon.TotalEpisodesNumUpDown.Value);
+                otaku.WatchedEpisodes = (int)japanesecartoon.WatchedEpisodesNumUpDown.Value;
+                otaku.URI = new Uri(japanesecartoon.URItextbox.Text);
+                otaku.Status = (ShowStatus)japanesecartoon.StatusListBox.SelectedItem;
+                otaku.Description = japanesecartoon.DescriptionTextbox.Text;
+                User.AddMedia(otaku);
+                MediaList.Nodes["AnimeNode"].Nodes.Add(japanesecartoon.TitleTextbox.Text);
+                MediaList.Nodes["AnimeNode"].Nodes[MediaList.Nodes["AnimeNode"].Nodes.Count - 1].Tag = otaku;
+
+
+            }
+        }
+
+        void MediaTab_Resize(object sender, EventArgs e)
+        {
+            MediaList.Left = control_padding;//left edge is padding distance away from container edge
+            MediaList.Top = control_padding;//Top edge is padding distance away from container top
+            MediaList.Height = (mediaInfo1.Top - MediaList.Top) - control_padding;
+
+            mediaInfo1.Left = control_padding;//left edge is padding distance away from container edge
+            mediaInfo1.Width = MediaTab.Width - control_padding;//width has padding distance on both sides
+
+            panel1.Left = MediaList.Right + control_padding;//left edge is padding distance away from MediaList edge
+            panel1.Top = control_padding;//Top edge is padding distance away from container top
+            panel1.Width = (MediaTab.Width - MediaList.Width) - (control_padding * 2);//width has padding distance on both sides
+            panel1.Height = (mediaInfo1.Top - panel1.Top) - control_padding;
+
+
+        }
 
         private void TabCalendar_Click(object sender, EventArgs e)
         {
             
         }
-
-        #endregion TabCalendar
 
         private void TaskCalendar_Resize(object sender, EventArgs e)
         {
@@ -239,6 +282,50 @@ namespace MyScheduler
 
         private void removeTaskToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            
+        }
+
+        private void ListViewSchedule_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            if (e.Column == 2)
+            {
+                //sorting algorithm of choice for date
+            }
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedIndex == 2)
+            {
+                //videoplayer = Process.Start("C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe");
+                //videoplayer.WaitForInputIdle();
+
+            }
+        }
+
+        private void MediaList_Resize(object sender, EventArgs e)
+        {
+            panel1.Left = MediaList.Right + control_padding;
+        }
+
+        private void MySchedulerForm_Resize(object sender, EventArgs e)
+        {
+
+        }
+
+        private void addAnimeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Control c in panel1.Controls)
+            {
+                if (c.Name.Equals("AddAnime"))
+                {
+                    c.Visible = true;
+                }
+                else
+                {
+                    c.Visible = false;
+                }
+            }
             
         }
     }

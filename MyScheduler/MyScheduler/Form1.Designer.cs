@@ -30,6 +30,9 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("Anime");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("TV Shows");
+            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("Movies");
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MySchedulerForm));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.CalendarTab = new System.Windows.Forms.TabPage();
@@ -40,6 +43,9 @@
             this.ScheduleTab = new System.Windows.Forms.TabPage();
             this.ListViewSchedule = new System.Windows.Forms.ListView();
             this.MediaTab = new System.Windows.Forms.TabPage();
+            this.MediaList = new System.Windows.Forms.TreeView();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.Toolbar = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newUserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,12 +56,20 @@
             this.MonthLabel = new System.Windows.Forms.Label();
             this.NextMonthButton = new System.Windows.Forms.Button();
             this.PreviousMonthButton = new System.Windows.Forms.Button();
+            this.mediaInfo1 = new MyScheduler.MediaInfo();
+            this.AddMediacontextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.addAnimeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addTVShowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addMovieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1.SuspendLayout();
             this.CalendarTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).BeginInit();
             this.TaskCalendarContextMenuStrip.SuspendLayout();
             this.ScheduleTab.SuspendLayout();
+            this.MediaTab.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.Toolbar.SuspendLayout();
+            this.AddMediacontextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -69,6 +83,7 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(628, 454);
             this.tabControl1.TabIndex = 0;
+            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             this.tabControl1.Click += new System.EventHandler(this.tabControl1_Click);
             // 
             // CalendarTab
@@ -150,20 +165,66 @@
             // ListViewSchedule
             // 
             this.ListViewSchedule.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ListViewSchedule.GridLines = true;
             this.ListViewSchedule.Location = new System.Drawing.Point(3, 3);
             this.ListViewSchedule.Name = "ListViewSchedule";
             this.ListViewSchedule.Size = new System.Drawing.Size(614, 422);
             this.ListViewSchedule.TabIndex = 0;
             this.ListViewSchedule.UseCompatibleStateImageBehavior = false;
+            this.ListViewSchedule.View = System.Windows.Forms.View.Details;
+            this.ListViewSchedule.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.ListViewSchedule_ColumnClick);
             // 
             // MediaTab
             // 
+            this.MediaTab.Controls.Add(this.mediaInfo1);
+            this.MediaTab.Controls.Add(this.MediaList);
+            this.MediaTab.Controls.Add(this.panel1);
             this.MediaTab.Location = new System.Drawing.Point(4, 22);
             this.MediaTab.Name = "MediaTab";
             this.MediaTab.Size = new System.Drawing.Size(620, 428);
             this.MediaTab.TabIndex = 2;
             this.MediaTab.Text = "Media";
             this.MediaTab.UseVisualStyleBackColor = true;
+            // 
+            // MediaList
+            // 
+            this.MediaList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.MediaList.ContextMenuStrip = this.AddMediacontextMenuStrip;
+            this.MediaList.Location = new System.Drawing.Point(0, 0);
+            this.MediaList.Name = "MediaList";
+            treeNode1.Name = "AnimeNode";
+            treeNode1.Text = "Anime";
+            treeNode2.Name = "TV";
+            treeNode2.Text = "TV Shows";
+            treeNode3.Name = "Movies";
+            treeNode3.Text = "Movies";
+            this.MediaList.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
+            treeNode1,
+            treeNode2,
+            treeNode3});
+            this.MediaList.Size = new System.Drawing.Size(120, 363);
+            this.MediaList.TabIndex = 1;
+            this.MediaList.Tag = "";
+            this.MediaList.Resize += new System.EventHandler(this.MediaList_Resize);
+            // 
+            // panel1
+            // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.webBrowser1);
+            this.panel1.Location = new System.Drawing.Point(121, 2);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(502, 361);
+            this.panel1.TabIndex = 0;
+            // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.webBrowser1.Location = new System.Drawing.Point(0, 0);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(500, 359);
+            this.webBrowser1.TabIndex = 0;
             // 
             // Toolbar
             // 
@@ -235,6 +296,7 @@
             // 
             // NextMonthButton
             // 
+            this.NextMonthButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.NextMonthButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.NextMonthButton.Location = new System.Drawing.Point(348, 2);
             this.NextMonthButton.Name = "NextMonthButton";
@@ -245,6 +307,7 @@
             // 
             // PreviousMonthButton
             // 
+            this.PreviousMonthButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.PreviousMonthButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PreviousMonthButton.Location = new System.Drawing.Point(231, 2);
             this.PreviousMonthButton.Name = "PreviousMonthButton";
@@ -252,6 +315,44 @@
             this.PreviousMonthButton.TabIndex = 3;
             this.PreviousMonthButton.Text = "Previous";
             this.PreviousMonthButton.UseVisualStyleBackColor = true;
+            // 
+            // mediaInfo1
+            // 
+            this.mediaInfo1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.mediaInfo1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.mediaInfo1.Location = new System.Drawing.Point(0, 363);
+            this.mediaInfo1.Name = "mediaInfo1";
+            this.mediaInfo1.Size = new System.Drawing.Size(620, 65);
+            this.mediaInfo1.TabIndex = 2;
+            // 
+            // AddMediacontextMenuStrip
+            // 
+            this.AddMediacontextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addAnimeToolStripMenuItem,
+            this.addTVShowToolStripMenuItem,
+            this.addMovieToolStripMenuItem});
+            this.AddMediacontextMenuStrip.Name = "AddMediacontextMenuStrip";
+            this.AddMediacontextMenuStrip.Size = new System.Drawing.Size(153, 92);
+            // 
+            // addAnimeToolStripMenuItem
+            // 
+            this.addAnimeToolStripMenuItem.Name = "addAnimeToolStripMenuItem";
+            this.addAnimeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addAnimeToolStripMenuItem.Text = "Add Anime";
+            this.addAnimeToolStripMenuItem.Click += new System.EventHandler(this.addAnimeToolStripMenuItem_Click);
+            // 
+            // addTVShowToolStripMenuItem
+            // 
+            this.addTVShowToolStripMenuItem.Name = "addTVShowToolStripMenuItem";
+            this.addTVShowToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addTVShowToolStripMenuItem.Text = "Add TV Show";
+            // 
+            // addMovieToolStripMenuItem
+            // 
+            this.addMovieToolStripMenuItem.Name = "addMovieToolStripMenuItem";
+            this.addMovieToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addMovieToolStripMenuItem.Text = "Add Movie";
             // 
             // MySchedulerForm
             // 
@@ -269,13 +370,17 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "My Scheduler";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.Resize += new System.EventHandler(this.MySchedulerForm_Resize);
             this.tabControl1.ResumeLayout(false);
             this.CalendarTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).EndInit();
             this.TaskCalendarContextMenuStrip.ResumeLayout(false);
             this.ScheduleTab.ResumeLayout(false);
+            this.MediaTab.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
             this.Toolbar.ResumeLayout(false);
             this.Toolbar.PerformLayout();
+            this.AddMediacontextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -302,6 +407,14 @@
         private System.Windows.Forms.ToolStripMenuItem addTaskToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeTaskToolStripMenuItem;
         private System.Windows.Forms.ListView ListViewSchedule;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TreeView MediaList;
+        private System.Windows.Forms.WebBrowser webBrowser1;
+        private MediaInfo mediaInfo1;
+        private System.Windows.Forms.ContextMenuStrip AddMediacontextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem addAnimeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addTVShowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addMovieToolStripMenuItem;
     }
 }
 

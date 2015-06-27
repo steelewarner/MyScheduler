@@ -186,7 +186,7 @@
             0});
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(155, 20);
-            this.numericUpDown1.TabIndex = 14;
+            this.numericUpDown1.TabIndex = 7;
             this.numericUpDown1.Visible = false;
             // 
             // dateTimePicker1
@@ -201,13 +201,14 @@
             this.dateClock1.Location = new System.Drawing.Point(212, 90);
             this.dateClock1.Name = "dateClock1";
             this.dateClock1.Size = new System.Drawing.Size(155, 23);
-            this.dateClock1.TabIndex = 16;
+            this.dateClock1.TabIndex = 6;
             // 
             // AddTaskForm
             // 
             this.AcceptButton = this.AddButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.CancelButton;
             this.ClientSize = new System.Drawing.Size(379, 208);
             this.Controls.Add(this.dateClock1);
             this.Controls.Add(this.dateTimePicker1);

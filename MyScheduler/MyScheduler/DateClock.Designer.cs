@@ -45,6 +45,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(21, 20);
             this.textBox1.TabIndex = 0;
+            this.textBox1.Text = "MM";
             this.textBox1.MouseHover += new System.EventHandler(this.textBox1_MouseHover);
             // 
             // textBox2
@@ -54,6 +55,7 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(18, 20);
             this.textBox2.TabIndex = 1;
+            this.textBox2.Text = "DD";
             this.textBox2.MouseHover += new System.EventHandler(this.textBox2_MouseHover);
             // 
             // textBox3
@@ -63,6 +65,7 @@
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(30, 20);
             this.textBox3.TabIndex = 2;
+            this.textBox3.Text = "YYYY";
             this.textBox3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.textBox3_MouseDown);
             this.textBox3.MouseHover += new System.EventHandler(this.textBox3_MouseHover);
             this.textBox3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.textBox3_MouseMove);
@@ -74,6 +77,7 @@
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new System.Drawing.Size(22, 20);
             this.textBox4.TabIndex = 3;
+            this.textBox4.Text = "hh";
             this.textBox4.MouseHover += new System.EventHandler(this.textBox4_MouseHover);
             // 
             // textBox5
@@ -83,6 +87,7 @@
             this.textBox5.Name = "textBox5";
             this.textBox5.Size = new System.Drawing.Size(29, 20);
             this.textBox5.TabIndex = 4;
+            this.textBox5.Text = "mm";
             this.textBox5.MouseHover += new System.EventHandler(this.textBox5_MouseHover);
             // 
             // label1

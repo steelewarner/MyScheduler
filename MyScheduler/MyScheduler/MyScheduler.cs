@@ -1,6 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
+ * Last Updated: 6/26/15
  */
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,8 @@ using System.ComponentModel;
 
 namespace MyScheduler
 {
-    public enum PriorityStatus {Low = 0, Medium = 1, High = 2};
-    public enum ShowStatus { Airing, FinishedAiring, Completed, PlanToWatch};
+    public enum PriorityStatus { Low = 0, Medium = 1, High = 2 };
+    public enum ShowStatus { Airing, FinishedAiring, Completed, PlanToWatch };
     
     public sealed class MySchedulerUser
     {
@@ -28,6 +29,7 @@ namespace MyScheduler
             _firstname = fname;
             _lastname = lname;
             _taskList = new List<Task>();
+            _medialist = new List<Media>();
             _calendar = new MySchedulerCalendar();
             _calendar.TaskAdded += _calendar_TaskAdded;
         }
@@ -39,10 +41,13 @@ namespace MyScheduler
 
         public event EventHandler TaskCreated;
         public event EventHandler TaskCompleted;
+        public event EventHandler MediaAdded;
+
         private string _username;
         private string _firstname;
         private string _lastname;
         private List<Task> _taskList;
+        private List<Media> _medialist;
         private MySchedulerCalendar _calendar;
 
         /// <summary>
@@ -64,6 +69,15 @@ namespace MyScheduler
             if (handler != null)
             {
                 handler(this, new TaskEventArgs(completedTask));
+            }
+        }
+
+        private void OnMediaAdded(Media addedMedia)
+        {
+            EventHandler handler = MediaAdded;
+            if (handler != null)
+            {
+                handler(this, new MediaEventArgs(addedMedia));
             }
         }
 
@@ -99,6 +113,13 @@ namespace MyScheduler
             get { return _taskList; }
         }
         /// <summary>
+        /// Gets the list containing all media objects for this user
+        /// </summary>
+        public List<Media> Medialist
+        {
+            get { return _medialist; }
+        }
+        /// <summary>
         /// Gets this User's calendar
         /// </summary>
         public MySchedulerCalendar Calendar
@@ -117,6 +138,19 @@ namespace MyScheduler
                 OnTaskCreated(t);
                 _taskList[_taskList.Count - 1].TaskComplete += MySchedulerUser_TaskComplete;
             }
+        }
+        /// <summary>
+        /// Adds a new media object to Medialist. Does not add duplicates.
+        /// </summary>
+        /// <param name="m">media object to be added</param>
+        public void AddMedia(Media m)
+        {
+            if (_medialist.Contains(m))
+            {
+                return;
+            }
+            _medialist.Add(m);
+            OnMediaAdded(m);
         }
 
         public void MySchedulerUser_TaskComplete(object sender, EventArgs e)
@@ -138,18 +172,8 @@ namespace MyScheduler
         }
     }
 
-    
-
     #region Tasks
 
-    public interface IMySchedulerDateTime
-    {
-        /// <summary>
-        /// Gets the date associated with this object
-        /// </summary>
-        /// <returns>Datetime associated with object</returns>
-        DateTime GetDate();
-    }
 
     public class TaskEventArgs : EventArgs
     {
@@ -171,7 +195,7 @@ namespace MyScheduler
     /// <summary>
     /// Base Task class for object used in to-do list, calendar
     /// </summary>
-    public abstract class Task : IMySchedulerDateTime
+    public abstract class Task
     {
         protected Task(string name, string description)
         {
@@ -182,7 +206,7 @@ namespace MyScheduler
         public override bool Equals(object obj)
         {
             if (this.Name.Equals(((Task)obj).Name) && this.Description.Equals(((Task)obj).Description)
-                    && this.GetDate().Equals(((Task)obj).GetDate())) 
+                    && this.Date.Equals(((Task)obj).Date)) 
             { return true; }
             return false;
         }
@@ -191,6 +215,7 @@ namespace MyScheduler
         protected string _name;//name of task
         protected StringBuilder _description;//description of task
         protected  PriorityStatus _priority;//the priority of the task
+        protected DateTime _date;
 
         /// <summary>
         /// Gets or sets the name of the task
@@ -220,6 +245,14 @@ namespace MyScheduler
             get { return _priority; }
             set { _priority = value; }
         }
+        /// <summary>
+        /// Gets or sets the date for this task
+        /// </summary>
+        public DateTime Date
+        {
+            get { return _date; }
+            set { _date = value; }
+        }
 
         public virtual void TaskCompleted()
         {
@@ -233,11 +266,6 @@ namespace MyScheduler
             {
                 handler(this, new TaskEventArgs(this));
             }
-        }
-
-        public virtual DateTime GetDate()
-        {
-            return new DateTime();
         }
     }
 
@@ -262,18 +290,18 @@ namespace MyScheduler
         public Assignment(string name, string desc, string course, DateTime due) : base(name, desc)
         {
             _course = course;
-            _duedate = due;
+            _date = due;
             _materialcovered = new StringBuilder(string.Empty);
         }
         public Assignment(string name, string desc, string course, DateTime due, string material) : base(name, desc)
         {
             _course = course;
-            _duedate = due;
+            _date = due;
             _materialcovered = new StringBuilder(material);
         }
 
         private string _course;
-        private DateTime _duedate;
+        //private DateTime _duedate;
         private StringBuilder _materialcovered;
 
         /// <summary>
@@ -283,14 +311,6 @@ namespace MyScheduler
         {
             get { return _course; }
             set { _course = value; }
-        }
-        /// <summary>
-        /// Gets or sets the due date for the assignment
-        /// </summary>
-        public DateTime DueDate
-        {
-            get { return _duedate; }
-            set { _duedate = value; }
         }
         /// <summary>
         /// Gets or sets the material covered for this assignment
@@ -311,11 +331,6 @@ namespace MyScheduler
         {
             OnTaskComplete();
         }
-
-        public override DateTime GetDate()
-        {
-            return _duedate;
-        }
     }
 
     public class Lecture : Task
@@ -323,13 +338,13 @@ namespace MyScheduler
         public Lecture(string name, string desc, string course, DateTime time, TimeSpan length) : base(name, desc)
         {
             _course = course;
-            _time = time;
+            _date = time;
             _length = length;
             _days = new List<DayOfWeek>();
         }
 
         private string _course;
-        private DateTime _time;
+        //private DateTime _time;
         private TimeSpan _length;
         private List<DayOfWeek> _days;
 
@@ -341,14 +356,7 @@ namespace MyScheduler
             get { return _course; }
             set { _course = value; }
         }
-        /// <summary>
-        /// Gets or sets the time when the lecture starts
-        /// </summary>
-        public DateTime Time
-        {
-            get { return _time; }
-            set { _time = value; }
-        }
+
         /// <summary>
         /// Gets or sets the length of the lecture
         /// </summary>
@@ -402,17 +410,29 @@ namespace MyScheduler
         {
             OnTaskComplete();
         } 
-
-        public override DateTime GetDate()
-        {
-            return _time;
-        }
     }
 
 
     #endregion Tasks
 
     #region Media
+
+    public class MediaEventArgs : EventArgs
+    {
+        public MediaEventArgs(Media m) : base()
+        {
+            medObject = m;
+        }
+
+        private Media medObject;
+        /// <summary>
+        /// Gets a copy of the media object that was added to medialist
+        /// </summary>
+        public Media ArgsMedia
+        {
+            get { return medObject; }
+        }
+    }
 
     /// <summary>
     /// Base class for media object, ie tv show/movie/song
@@ -422,21 +442,99 @@ namespace MyScheduler
         public Media(string title)
         {
             _title = title;
+            _description = string.Empty;
+            _status = ShowStatus.PlanToWatch;
+        }
+        public Media(string title, string description)
+        {
+            _title = title;
+            _description = description;
             _status = ShowStatus.PlanToWatch;
         }
 
+        public event EventHandler StatusChanged;
+ 
         protected string _title;
         protected ShowStatus _status;
+        protected string _description;
 
+        /// <summary>
+        /// Gets or sets the title
+        /// </summary>
         public string Title
         {
             get { return _title; }
             set { _title = value; }
         }
+        /// <summary>
+        /// Gets or sets the description of this media object
+        /// </summary>
+        public string Description
+        {
+            get { return _description; }
+            set { _description = value; }
+        }
+        /// <summary>
+        /// Gets or sets the status
+        /// </summary>
         public ShowStatus Status
         {
             get { return _status; }
-            set { _status = value; }
+            set 
+            { 
+                if (_status != value)
+                {
+                    _status = value;
+                    OnStatusChanged(value);
+                }
+                 
+            }
+        }
+
+        private void OnStatusChanged(ShowStatus status)
+        {
+            EventHandler handler = StatusChanged;
+            if (handler != null)
+            {
+                handler(this, new StatusChangedEventArgs(status));
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            try
+            {
+                if (this.Title.Equals(((Media)obj).Title) && this.Description.Equals(((Media)obj).Description))
+                {
+                    return true;
+                }
+            }
+            catch (InvalidCastException)
+            {
+                return false;
+            }
+            return false;
+        }
+    }
+
+    internal sealed class StatusChangedEventArgs: EventArgs
+    {
+        /// <summary>
+        /// Event args for status change in media object
+        /// </summary>
+        /// <param name="status">New status of media object</param>
+        public StatusChangedEventArgs(ShowStatus status) : base()
+        {
+            _status = status;
+        }
+
+        private ShowStatus _status;
+        /// <summary>
+        /// Gets the new status of the media object
+        /// </summary>
+        public ShowStatus Status
+        {
+            get { return _status; }
         }
     }
 
@@ -445,10 +543,12 @@ namespace MyScheduler
     /// </summary>
     public class Anime : TVshow
     {
-        public Anime(string title, DateTime airtime, short episodes) : base(title, airtime, episodes)
+        public Anime(string title, DateTime airtime, int episodes) : base(title, airtime, episodes)
         {
             _downloaded = false;
         }
+
+        public event EventHandler DownloadCompleted;
 
         private bool _downloaded;
 
@@ -458,7 +558,23 @@ namespace MyScheduler
         public bool Downloaded
         {
             get { return _downloaded; }
-            set { _downloaded = value; }
+            set 
+            { 
+                _downloaded = value;
+                if (value)
+                {
+                    OnDownloadComplete();   
+                }
+            }
+        }
+
+        private void OnDownloadComplete()
+        {
+            EventHandler handler = DownloadCompleted;
+            if (handler != null)
+            {
+                handler(this, new EventArgs());
+            }
         }
     }
     /// <summary>
@@ -487,16 +603,20 @@ namespace MyScheduler
     /// </summary>
     public class TVshow : Media
     {
-        public TVshow(string title, DateTime airtime, short episodes) : base(title)
+        public TVshow(string title, DateTime airtime, int episodes) : base(title)
         {
             _airtime = airtime;
             _totalEpisodes = episodes;
             _watchedEpisodes = 0;
+            _uri = new Uri("C:\\Users\\Steele\\Videos\\Anime Shows\\Bakemonogatari[Koharubi][gg][pem]");
         }
 
+        public event EventHandler EpisodeWatched;
+
         protected DateTime _airtime;
-        protected short _totalEpisodes;
-        protected short _watchedEpisodes;
+        protected int _totalEpisodes;
+        protected int _watchedEpisodes;
+        protected Uri _uri;
 
         /// <summary>
         /// Time for when the first episode airs
@@ -509,7 +629,7 @@ namespace MyScheduler
         /// <summary>
         /// Total number of episodes this show has
         /// </summary>
-        public short TotalEpisodes
+        public int TotalEpisodes
         {
             get { return _totalEpisodes; }
             set { _totalEpisodes = value; }
@@ -517,10 +637,52 @@ namespace MyScheduler
         /// <summary>
         /// Number of episodes watched by the user
         /// </summary>
-        public short WatchedEpisodes
+        public int WatchedEpisodes
         {
             get { return _watchedEpisodes; }
-            set { _watchedEpisodes = value; }
+            set 
+            { 
+                if (_watchedEpisodes != value)
+                {
+                    _watchedEpisodes = value;
+                    OnEpisodeWatched(value);
+                }
+                 
+            }
+        }
+        /// <summary>
+        /// Gets or sets the uri/path for this show
+        /// </summary>
+        public Uri URI
+        {
+            get { return _uri; }
+            set { _uri = value; }
+        }
+
+        private void OnEpisodeWatched(int episode_number)
+        {
+            EventHandler handler = EpisodeWatched;
+            if (handler != null)
+            {
+                handler(this, new EpisodeWatchedEventArgs(episode_number));
+            }
+        }
+    }
+
+    internal sealed class EpisodeWatchedEventArgs : EventArgs
+    {
+        public EpisodeWatchedEventArgs(int episode_number) : base()
+        {
+            _episodewatched = episode_number;
+        }
+
+        private int _episodewatched;
+        /// <summary>
+        /// Gets the episode number that was just watched
+        /// </summary>
+        public int EpisodeWatched
+        {
+            get { return _episodewatched; }
         }
     }
 

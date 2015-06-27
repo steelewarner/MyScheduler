@@ -1,4 +1,9 @@
-﻿using System;
+﻿/* ************************************************************************
+ * Author: Steele Warner
+ * Last Updated: 6/25/2015
+ * ***********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -86,8 +91,8 @@ namespace MyScheduler
         {
             //string[] arr = date.Split('/');
 
-            return new DateTime(int.Parse(dateClock1.textBox1.Text), int.Parse(dateClock1.textBox2.Text),
-                int.Parse(dateClock1.textBox3.Text), int.Parse(dateClock1.textBox4.Text), int.Parse(dateClock1.textBox5.Text), 0);
+            return new DateTime(int.Parse(dateClock1.textBox3.Text), int.Parse(dateClock1.textBox1.Text),
+                int.Parse(dateClock1.textBox2.Text), int.Parse(dateClock1.textBox4.Text), int.Parse(dateClock1.textBox5.Text), 0);
         }
 
         private void DisplayAssignmentUI()
@@ -103,8 +108,8 @@ namespace MyScheduler
             textBox4.Visible = false;
             textBox5.Visible = true;
             numericUpDown1.Visible = false;
-            dateTimePicker1.Visible = true;
-            dateClock1.Visible = false;
+            dateTimePicker1.Visible = false;
+            dateClock1.Visible = true;
         }
 
         private void DisplayLectureUI()
@@ -112,11 +117,6 @@ namespace MyScheduler
             label3.Text = "Course";
             label4.Text = "Start Time";
             label5.Text = "Length (Minutes)";
-            dateClock1.textBox1.Text = "MM";
-            dateClock1.textBox2.Text = "DD";
-            dateClock1.textBox3.Text = "YYYY";
-            dateClock1.textBox4.Text = "hh";
-            dateClock1.textBox5.Text = "mm";
 
             label3.Visible = true;
             label4.Visible = true;
@@ -131,20 +131,27 @@ namespace MyScheduler
 
         private void DisplayMiscellaneousUI()
         {
+            label4.Text = "Date";
+
             label3.Visible = false;
-            label4.Visible = false;
+            label4.Visible = true;
             label5.Visible = false;
             textBox3.Visible = false;
             textBox4.Visible = false;
             textBox5.Visible = false;
             numericUpDown1.Visible = false;
-            dateTimePicker1.Visible = false;
+            dateTimePicker1.Visible = true;
             dateClock1.Visible = false;
         }
 
         private void AddTaskForm_Load(object sender, EventArgs e)
         {
             textBox4.Text = "MM/DD/YYYY";
+            dateClock1.textBox1.Text = "MM";
+            dateClock1.textBox2.Text = "DD";
+            dateClock1.textBox3.Text = "YYYY";
+            dateClock1.textBox4.Text = "hh";
+            dateClock1.textBox5.Text = "mm";
             DisplayAssignmentUI();
             listBox1.SelectedItem = listBox1.Items[0];
         }
@@ -174,10 +181,11 @@ namespace MyScheduler
 
                 switch (listBox1.SelectedIndex)
                 {
-                    case 0: _task = new Assignment(_title, _desc, _course, _date);
+                    case 0: _date = ParseDateClock();
+                            _task = new Assignment(_title, _desc, _course, _date);
                         break;
                     case 1: _date = ParseDateClock();
-                        _task = new Lecture(_title, _desc, _course, _date, _timelength);
+                            _task = new Lecture(_title, _desc, _course, _date, _timelength);
                         break;
                     case 2: _task = new Miscellaneous(_title, _desc);
                         break;
@@ -186,9 +194,9 @@ namespace MyScheduler
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
-            catch(FormatException)
+            catch(Exception ex)
             {
-                MessageBox.Show("Incorrect Input", "Unacceptable Format");
+                MessageBox.Show(this, ex.Message, "Error");
             }
         }
 
