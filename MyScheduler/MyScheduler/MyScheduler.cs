@@ -1,7 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
- * Last Updated: 6/26/15
+ * Last Updated: 6/28/15
  */
 using System;
 using System.Collections.Generic;
@@ -907,9 +907,9 @@ namespace MyScheduler
             {
                 return today.DayOfWeek;
             }
-
+            
             int x = (today.Day - 1) % 7;
-            return today.DayOfWeek - x;
+            return (DayOfWeek)(today.DayOfWeek - x);//this produced a negative number on sunday june 28 but never any other time
         }
     }
 

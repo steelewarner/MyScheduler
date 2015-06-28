@@ -23,4 +23,5 @@ C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\M
 C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.exe
 C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.pdb
 C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.csprojResolveAssemblyReference.cache
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddAnime.resources
+C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddTV.resources
+C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddMovie.resources

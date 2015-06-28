@@ -32,7 +32,7 @@
             this.StatusLabel = new System.Windows.Forms.Label();
             this.ProgressLabel = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.EpisodeCount = new System.Windows.Forms.Label();
+            this.EpisodeLabel = new System.Windows.Forms.Label();
             this.DashLabel = new System.Windows.Forms.Label();
             this.richTextBoxDescription = new System.Windows.Forms.RichTextBox();
             this.DownloadLabel = new System.Windows.Forms.Label();
@@ -80,15 +80,16 @@
             this.progressBar1.Size = new System.Drawing.Size(316, 47);
             this.progressBar1.TabIndex = 4;
             // 
-            // EpisodeCount
+            // EpisodeLabel
             // 
-            this.EpisodeCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.EpisodeCount.AutoSize = true;
-            this.EpisodeCount.Location = new System.Drawing.Point(263, 42);
-            this.EpisodeCount.Name = "EpisodeCount";
-            this.EpisodeCount.Size = new System.Drawing.Size(37, 13);
-            this.EpisodeCount.TabIndex = 5;
-            this.EpisodeCount.Text = "ep/Ep";
+            this.EpisodeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.EpisodeLabel.AutoSize = true;
+            this.EpisodeLabel.Location = new System.Drawing.Point(263, 42);
+            this.EpisodeLabel.Name = "EpisodeLabel";
+            this.EpisodeLabel.Size = new System.Drawing.Size(37, 13);
+            this.EpisodeLabel.TabIndex = 5;
+            this.EpisodeLabel.Text = "ep/Ep";
+            this.EpisodeLabel.TextChanged += new System.EventHandler(this.EpisodeCount_TextChanged);
             // 
             // DashLabel
             // 
@@ -109,7 +110,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 19);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
+            this.richTextBoxDescription.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             this.richTextBoxDescription.Size = new System.Drawing.Size(244, 44);
             this.richTextBoxDescription.TabIndex = 7;
             this.richTextBoxDescription.Text = "";
@@ -145,7 +146,7 @@
             this.Controls.Add(this.DownloadLabel);
             this.Controls.Add(this.richTextBoxDescription);
             this.Controls.Add(this.DashLabel);
-            this.Controls.Add(this.EpisodeCount);
+            this.Controls.Add(this.EpisodeLabel);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.ProgressLabel);
             this.Controls.Add(this.StatusLabel);
@@ -168,9 +169,9 @@
         public System.Windows.Forms.Label StatusLabel;
         public System.Windows.Forms.Label ProgressLabel;
         public System.Windows.Forms.ProgressBar progressBar1;
-        public System.Windows.Forms.Label EpisodeCount;
-        private System.Windows.Forms.Label DownloadLabel;
-        private System.Windows.Forms.Label AirtimeLabel;
+        public System.Windows.Forms.Label EpisodeLabel;
+        public System.Windows.Forms.Label DownloadLabel;
+        public System.Windows.Forms.Label AirtimeLabel;
 
     }
 }

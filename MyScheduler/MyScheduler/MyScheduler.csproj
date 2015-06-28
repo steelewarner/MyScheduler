@@ -50,11 +50,17 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddAnime.cs">
+    <Compile Include="AddMovie.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="AddAnime.Designer.cs">
-      <DependentUpon>AddAnime.cs</DependentUpon>
+    <Compile Include="AddMovie.Designer.cs">
+      <DependentUpon>AddMovie.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AddTV.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AddTV.Designer.cs">
+      <DependentUpon>AddTV.cs</DependentUpon>
     </Compile>
     <Compile Include="AddTaskForm.cs">
       <SubType>Form</SubType>
@@ -89,8 +95,11 @@
     <Compile Include="UserSetup.Designer.cs">
       <DependentUpon>UserSetup.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="AddAnime.resx">
-      <DependentUpon>AddAnime.cs</DependentUpon>
+    <EmbeddedResource Include="AddMovie.resx">
+      <DependentUpon>AddMovie.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AddTV.resx">
+      <DependentUpon>AddTV.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="AddTaskForm.resx">
       <DependentUpon>AddTaskForm.cs</DependentUpon>

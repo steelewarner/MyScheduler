@@ -1,6 +1,6 @@
 ﻿/* ************************************************************************
  * Author: Steele Warner
- * Last Updated: 6/25/2015
+ * Last Updated: 6/27/2015
  * ***********************************************************************/
 
 using System;
@@ -188,6 +188,7 @@ namespace MyScheduler
                             _task = new Lecture(_title, _desc, _course, _date, _timelength);
                         break;
                     case 2: _task = new Miscellaneous(_title, _desc);
+                        _task.Date = dateTimePicker1.Value;
                         break;
                 }
 
