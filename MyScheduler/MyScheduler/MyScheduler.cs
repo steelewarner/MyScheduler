@@ -1,7 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
- * Last Updated: 6/28/15
+ * Last Updated: 6/29/15
  */
 using System;
 using System.Collections.Generic;
@@ -32,14 +32,21 @@ namespace MyScheduler
             _medialist = new List<Media>();
             _calendar = new MySchedulerCalendar();
             _calendar.TaskAdded += _calendar_TaskAdded;
+            _calendar.TaskRemoved += _calendar_TaskRemoved;
+        }
+
+        private void _calendar_TaskRemoved(object sender, EventArgs e)
+        {
+            
         }
 
         private void _calendar_TaskAdded(object sender, EventArgs e)
         {
-            AddTask(((TaskEventArgs)e).ArgsTask);
+            //AddTask(((TaskEventArgs)e).ArgsTask);
         }
 
         public event EventHandler TaskCreated;
+        public event EventHandler TaskRemoved;
         public event EventHandler TaskCompleted;
         public event EventHandler MediaAdded;
 
@@ -60,6 +67,15 @@ namespace MyScheduler
             if (handler != null)
             {
                 handler(this, new TaskEventArgs(newTask));
+            }
+        }
+
+        private void OnTaskRemoved(Task removedTask)
+        {
+            EventHandler handler = TaskRemoved;
+            if (null != handler)
+            {
+                handler(this, new TaskEventArgs(removedTask));
             }
         }
 
@@ -135,8 +151,9 @@ namespace MyScheduler
             if (!_taskList.Contains(t))
             {
                 _taskList.Add(t);
+                this._calendar.GetMonth(t.Date.Month).GetDay(t.Date.Day).AddTask(t);
                 OnTaskCreated(t);
-                _taskList[_taskList.Count - 1].TaskComplete += MySchedulerUser_TaskComplete;
+                _taskList[_taskList.Count - 1].TaskCompleted += MySchedulerUser_TaskComplete;
             }
         }
         /// <summary>
@@ -151,6 +168,16 @@ namespace MyScheduler
             }
             _medialist.Add(m);
             OnMediaAdded(m);
+        }
+        /// <summary>
+        /// Removes task from task list and calendar
+        /// </summary>
+        /// <param name="t">Task to be removed</param>
+        public void RemoveTask(Task t)
+        {
+            _taskList.Remove(t);
+            this._calendar.GetMonth(t.Date.Month).GetDay(t.Date.Day).RemoveTask(t);
+            OnTaskRemoved(t);
         }
 
         public void MySchedulerUser_TaskComplete(object sender, EventArgs e)
@@ -202,6 +229,7 @@ namespace MyScheduler
             _name = name;
             _description = new StringBuilder(description);
             _priority = PriorityStatus.Medium;
+            taskcomplete = false;
         }
         public override bool Equals(object obj)
         {
@@ -211,7 +239,8 @@ namespace MyScheduler
             return false;
         }
 
-        public event EventHandler TaskComplete;
+        public event EventHandler TaskCompleted;
+        protected bool taskcomplete;
         protected string _name;//name of task
         protected StringBuilder _description;//description of task
         protected  PriorityStatus _priority;//the priority of the task
@@ -253,15 +282,25 @@ namespace MyScheduler
             get { return _date; }
             set { _date = value; }
         }
-
-        public virtual void TaskCompleted()
+        /// <summary>
+        /// Gets or sets whether the task is finished and triggers TaskCompleted event
+        /// </summary>
+        public bool TaskComplete
         {
-            OnTaskComplete();
+            get { return taskcomplete; }
+            set 
+            { 
+                taskcomplete = value;
+                if (value)
+                {
+                    OnTaskComplete();
+                }
+            }
         }
 
         protected void OnTaskComplete()
         {
-            EventHandler handler = TaskComplete;
+            EventHandler handler = TaskCompleted;
             if (handler != null)
             {
                 handler(this, new TaskEventArgs(this));
@@ -276,10 +315,6 @@ namespace MyScheduler
 
         }
 
-        public override void TaskCompleted()
-        {
-            
-        }
     }
 
     /// <summary>
@@ -323,13 +358,6 @@ namespace MyScheduler
                 _materialcovered.Clear();
                 _materialcovered.Append(value);
             }
-        }
-        /// <summary>
-        /// Called when the task has been completed
-        /// </summary>
-        public override void TaskCompleted()
-        {
-            OnTaskComplete();
         }
     }
 
@@ -402,13 +430,6 @@ namespace MyScheduler
         public int NumberofDays()
         {
             return _days.Count;
-        }
-        /// <summary>
-        /// Called when the task has been completed
-        /// </summary>
-        public override void TaskCompleted()
-        {
-            OnTaskComplete();
         } 
     }
 
@@ -457,6 +478,7 @@ namespace MyScheduler
         protected string _title;
         protected ShowStatus _status;
         protected string _description;
+        //Add a genre field
 
         /// <summary>
         /// Gets or sets the title
@@ -698,6 +720,8 @@ namespace MyScheduler
 
     }
 
+    /*A GOOD ALERT WOULD BE IF THE UI CALENDAR IS OUTSIDE OF DATA CALENDAR*/
+
     #endregion Alerts
 
     #region Calendar
@@ -713,6 +737,8 @@ namespace MyScheduler
         }
 
         public event EventHandler TaskAdded;
+        public event EventHandler TaskRemoved;
+
         private MySchedulerMonth[] _months;
         /// <summary>
         /// Gets the month from the corresponding month number
@@ -735,7 +761,10 @@ namespace MyScheduler
         {
             _months[month.Month - 1] = month;
             _months[month.Month - 1].TaskAdded += MySchedulerCalendar_TaskAdded;
+            _months[month.Month - 1].TaskRemoved += MySchedulerCalendar_TaskRemoved;
         }
+
+        
         /// <summary>
         /// Checks if there is already a specific month set in this calendar
         /// </summary>
@@ -780,6 +809,14 @@ namespace MyScheduler
                 handler(sender, e);
             }
         }
+        void MySchedulerCalendar_TaskRemoved(object sender, EventArgs e)
+        {
+            EventHandler handler = TaskRemoved;
+            if (null != handler)
+            {
+                handler(sender, e);
+            }
+        }
     }
 
     public class MySchedulerMonth
@@ -794,11 +831,14 @@ namespace MyScheduler
             _numberofdays = DateTime.DaysInMonth(FirstDay.Year, FirstDay.Month);
             _days = new MySchedulerDay[31];
             InitializeMonth(FirstDay);
+            _tasks = new List<Task>();
         }
 
         public event EventHandler TaskAdded;
+        public event EventHandler TaskRemoved;
         private int _month;
         private int _numberofdays;
+        private List<Task> _tasks;
         private MySchedulerDay[] _days;//An array of all the days within the month
                                        //Data layer will not be in a form of a calendar
 
@@ -817,18 +857,37 @@ namespace MyScheduler
         {
             get { return _numberofdays; }
         }
+        /// <summary>
+        /// Gets the list of the tasks for this month
+        /// </summary>
+        public List<Task> MonthTasks
+        {
+            get { return _tasks; }
+        }
 
         private void InitializeMonth(DateTime FirstDay)
         {
-            for (int i = 0; i < _numberofdays; i++)
+            for (int i = 0; i < _numberofdays; i++)//Initializes each day object and sets their events
             {
                 _days[i] = new MySchedulerDay(FirstDay.AddDays(i));
                 _days[i].TaskAdded += MySchedulerMonth_TaskAdded;
+                _days[i].TaskRemoved += MySchedulerMonth_TaskRemoved;
+            }
+        }
+
+        void MySchedulerMonth_TaskRemoved(object sender, EventArgs e)
+        {
+            _tasks.Remove(((TaskEventArgs)e).ArgsTask);//removes task from month task list
+            EventHandler handler = TaskRemoved;
+            if (handler != null)
+            {
+                handler(sender, e);
             }
         }
 
         private void MySchedulerMonth_TaskAdded(object sender, EventArgs e)
         {
+            _tasks.Add(((TaskEventArgs)e).ArgsTask);//Adds task to month task list
             EventHandler handler = TaskAdded;
             if (handler != null)
             {
@@ -903,6 +962,7 @@ namespace MyScheduler
         /// <returns>Returns the day of the week of the first day</returns>
         public static DayOfWeek FindFirstDay(DateTime today)
         {
+            /*
             if (today.Day.Equals(1))
             {
                 return today.DayOfWeek;
@@ -910,6 +970,32 @@ namespace MyScheduler
             
             int x = (today.Day - 1) % 7;
             return (DayOfWeek)(today.DayOfWeek - x);//this produced a negative number on sunday june 28 but never any other time
+            */
+            return (new DateTime(today.Year, today.Month, 1)).DayOfWeek;
+        }
+        /// <summary>
+        /// Takes in a string of a month's name and returns the corresponding integer
+        /// </summary>
+        /// <param name="monthname">Name of month</param>
+        /// <returns>month as an int, 0 if incorrect input</returns>
+        public static int StringToInt(string monthname)
+        {
+            switch (monthname.ToLower())
+            {
+                case "january": return 1;
+                case "february": return 2;
+                case "march": return 3;
+                case "april": return 4;
+                case "may": return 5;
+                case "june": return 6;
+                case "july": return 7;
+                case "august": return 8;
+                case "september": return 9;
+                case "october": return 10;
+                case "november": return 11;
+                case "december": return 12;
+                default: return 0;
+            }
         }
     }
 
@@ -922,6 +1008,7 @@ namespace MyScheduler
         }
 
         public event EventHandler TaskAdded;
+        public event EventHandler TaskRemoved;
         private List<Task> _tasklist;
         private DateTime _date;
 
@@ -929,6 +1016,14 @@ namespace MyScheduler
         private void OnTaskAdd(Task t)
         {
             EventHandler handler = TaskAdded;
+            if (handler != null)
+            {
+                handler(this, new TaskEventArgs(t));
+            }
+        }
+        private void OnTaskRemove(Task t)
+        {
+            EventHandler handler = TaskRemoved;
             if (handler != null)
             {
                 handler(this, new TaskEventArgs(t));
@@ -957,6 +1052,7 @@ namespace MyScheduler
         public void RemoveTask(Task oldTask)
         {
             _tasklist.Remove(oldTask);
+            OnTaskRemove(oldTask);
         }
         /// <summary>
         /// Gets the day's date
