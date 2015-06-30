@@ -2,8 +2,8 @@
  * Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
- * Last Updated: 6/28/2015
- * version: v0.4.3
+ * Last Updated: 6/29/2015
+ * version: v0.5.5
  * ***********************************************************************/
 
 using System;
@@ -29,6 +29,7 @@ namespace MyScheduler
         private bool LoadUserOnSetup;
         private string SettingsURI;
         private Process videoplayer;
+        private DateTime CurrentDate;
         /// <summary>
         /// Value used for space between bordering controls
         /// </summary>
@@ -37,6 +38,7 @@ namespace MyScheduler
         public MySchedulerForm()
         {
             InitializeComponent();
+            CurrentDate = DateTime.Today;
         }
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace MyScheduler
             
             foreach (DataGridViewRow r in TaskCalendar.Rows)
             {
-                r.Height = control_height / 5;
+                r.Height = control_height / TaskCalendar.Rows.Count;
             }
             foreach (DataGridViewColumn c in TaskCalendar.Columns)
             {
@@ -58,17 +60,18 @@ namespace MyScheduler
         /// <summary>
         /// Sets the calendar to the correct month and dates
         /// </summary>
-        private void AddDatesToCalendar()
+        private void AddDatesToCalendar(DateTime d)
         {
-            MonthLabel.Text = MySchedulerMonth.IntToString(DateTime.Today.Month);
-            MonthLabel.Tag = DateTime.Today.Month;
-            int days = DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month);
-            //DayOfWeek firstday = MySchedulerMonth.FindFirstDay(DateTime.Today);
-            DayOfWeek firstday = (new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)).DayOfWeek;
-            int j = 0;
+            CurrentDate = d;
+            MonthLabel.Text = MySchedulerMonth.IntToString(d.Month) + ", " + d.Year.ToString();
+            MonthLabel.Tag = d.Month;
+            int days = DateTime.DaysInMonth(d.Year, d.Month);
+            DayOfWeek firstday = MySchedulerMonth.FindFirstDay(d);
+            //DayOfWeek firstday = (new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)).DayOfWeek;
+            int j = 1;
             for (int i = 1; i <= days; i++)
             {
-                TaskCalendar.Rows[j].Cells[((int)firstday + i - 1) % 7].Value = i.ToString() + Environment.NewLine;
+                TaskCalendar.Rows[j-1].Cells[((int)firstday + i - 1) % 7].Value = i.ToString() + Environment.NewLine;
                 if (((int)firstday + i) % 7  == 0)
                 {
                     j++;
@@ -104,7 +107,22 @@ namespace MyScheduler
             UpdateTaskCalendar(((TaskEventArgs)e).ArgsTask);
             UpdateTaskScheduler(((TaskEventArgs)e).ArgsTask);
         }
-
+        
+        private void User_TaskRemoved(object sender, EventArgs e)
+        {
+            Task t = ((TaskEventArgs)e).ArgsTask;
+            if ((int)MonthLabel.Tag == t.Date.Month)
+            {
+                DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.Date);
+                int row = (int)(t.Date.Day / 7);//finds corresponding row from month and date
+                int column = ((int)firstday + t.Date.Day - 1) % 7;//finds corresponding column from month and date
+                TaskCalendar.Rows[row].Cells[column].Value = ((string)TaskCalendar.Rows[row].Cells[column].Value).Replace(Environment.NewLine + t.Name, "");
+            }
+        }
+        /// <summary>
+        /// Adds newly created task to task calendar
+        /// </summary>
+        /// <param name="t">New task</param>
         private void UpdateTaskCalendar(Task t)
         {
             if ((int)MonthLabel.Tag == t.Date.Month)
@@ -113,14 +131,27 @@ namespace MyScheduler
                 int row = (int)(t.Date.Day / 7);//finds corresponding row from month and date
                 int column = ((int)firstday + t.Date.Day - 1) % 7;//finds corresponding column from month and date
                 TaskCalendar.Rows[row].Cells[column].Value += t.Name + Environment.NewLine;
-                TaskCalendar.Rows[row].Cells[column].Tag = t;
+                if (TaskCalendar.Rows[row].Cells[column].Tag is List<Task>)
+                {
+                    ((List<Task>)TaskCalendar.Rows[row].Cells[column].Tag).Add(t);//adds new cell
+                }
+                else
+                {
+                    TaskCalendar.Rows[row].Cells[column].Tag = new List<Task>();//creates list of tasks for specific cell
+                    ((List<Task>)TaskCalendar.Rows[row].Cells[column].Tag).Add(t);//adds new task to cell tag
+                }
+                
             }
         }
-
+        /// <summary>
+        /// Adds newly created task to scheduler
+        /// </summary>
+        /// <param name="t">New task</param>
         private void UpdateTaskScheduler(Task t)
         {
             string[] subitms = { t.Name, t.Date.ToString(), t.Description };
             ListViewSchedule.Items.Add(t.GetType().Name).SubItems.AddRange(subitms);//Adds a new item to schedule with info subitems
+            ListViewSchedule.Items[ListViewSchedule.Items.Count - 1].Tag = t;
         }
 
         private void ListViewScheduleInitializer()
@@ -156,7 +187,8 @@ namespace MyScheduler
             User = new MySchedulerUser("", "John", "Doe");
             User.Calendar.CreateFullCalendar(DateTime.Today.Year);
             User.TaskCreated += User_TaskCreated;
-
+            User.TaskRemoved += User_TaskRemoved;
+            
             /******************************
                    TabCalendar Setup
              ******************************/
@@ -172,7 +204,7 @@ namespace MyScheduler
 
             ResizeTaskCalendarRows();
 
-            AddDatesToCalendar();
+            AddDatesToCalendar(DateTime.Today);
 
             
             /******************************
@@ -219,7 +251,7 @@ namespace MyScheduler
             panel1.Controls["AddAnime"].Visible = false;
         }
 
-        void User_MediaAdded(object sender, EventArgs e)
+        private void User_MediaAdded(object sender, EventArgs e)
         {
             var args = e as MediaEventArgs;
 
@@ -333,8 +365,8 @@ namespace MyScheduler
             {
                 if (addForm.ShowDialog() == DialogResult.OK)
                 {
-                    //User.AddTask(addForm.GetSelectedTask());
-                    User.Calendar.GetMonth(addForm.Date.Month).GetDay(addForm.Date.Day).AddTask(addForm.GetSelectedTask());
+                    User.AddTask(addForm.GetSelectedTask());
+                    //User.Calendar.GetMonth(addForm.Date.Month).GetDay(addForm.Date.Day).AddTask(addForm.GetSelectedTask());
                 }
             }
         }
@@ -356,11 +388,6 @@ namespace MyScheduler
                     this.Text = User.FirstName + " " +  User.LastName;
                 }
             }
-        }
-
-        private void removeTaskToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
         }
 
         private void ListViewSchedule_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -476,6 +503,93 @@ namespace MyScheduler
                     mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
                     break;
             }
-        }          
+        }
+
+        private void NextMonthButton_Click(object sender, EventArgs e)
+        {
+            //clears task calendar
+            int counter = TaskCalendar.Rows.Count;
+            for (int i = 0; i < counter; i++)
+            {
+                TaskCalendar.Rows.RemoveAt(0);
+            }
+            TaskCalendar.Rows.Add();//Adds one needed row to calendar to prevent exception in AddDatesToCalendar
+
+            if ((int)MonthLabel.Tag == 12)
+            {
+                //Fixes calendar and month label display with rollover for next year
+                AddDatesToCalendar(new DateTime(CurrentDate.Year + 1, 1, 1));       
+            }
+            else
+            {
+                //Fixes calendar and month label display
+                AddDatesToCalendar(new DateTime(CurrentDate.Year, (int)MonthLabel.Tag + 1, 1));
+            }
+
+            foreach (Task t in User.Calendar.GetMonth((int)MonthLabel.Tag).MonthTasks)
+            {
+                if (t != null)
+                {
+                    UpdateTaskCalendar(t);
+                }               
+            }
+            
+        }
+        
+        private void PreviousMonthButton_Click(object sender, EventArgs e)
+        {
+            //clears task calendar
+            int counter = TaskCalendar.Rows.Count;
+            for (int i = 0; i < counter; i++)
+            {
+                TaskCalendar.Rows.RemoveAt(0);
+            }
+            TaskCalendar.Rows.Add();//Adds one needed row to calendar to prevent exception in AddDatesToCalendar
+
+            if ((int)MonthLabel.Tag == 1)
+            {
+                //Fixes calendar and month label display with rollover for previous year
+                AddDatesToCalendar(new DateTime(CurrentDate.Year - 1, 12, 1));
+            }
+            else
+            {
+                //Fixes calendar and month label display
+                AddDatesToCalendar(new DateTime(CurrentDate.Year, (int)MonthLabel.Tag - 1, 1));
+            }
+
+            foreach (Task t in User.Calendar.GetMonth((int)MonthLabel.Tag).MonthTasks)
+            {
+                if (t != null)
+                {
+                    UpdateTaskCalendar(t);
+                }
+            }
+        } 
+
+        private void removeTaskToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Task rTask;
+            if (ListViewSchedule.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("No task selected", "Invalid Operation");
+            }
+            else
+            {
+                foreach (ListViewItem itm in ListViewSchedule.SelectedItems)
+                {
+                    rTask = itm.Tag as Task;
+                    User.RemoveTask(rTask);
+                    itm.Remove();
+                }
+            }
+        }
+
+        private void MonthLabel_SizeChanged(object sender, EventArgs e)
+        {
+            PreviousMonthButton.Left = MonthLabel.Left - (PreviousMonthButton.Width + control_padding);
+            NextMonthButton.Left = MonthLabel.Right + control_padding;
+        }
+
+                 
     }
 }
