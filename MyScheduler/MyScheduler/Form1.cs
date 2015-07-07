@@ -2,8 +2,8 @@
  * Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
- * Last Updated: 6/29/2015
- * version: v0.5.5
+ * Last Updated: 7/6/2015
+ * version: v0.6.9
  * ***********************************************************************/
 
 using System;
@@ -19,6 +19,8 @@ using System.Xml;
 using System.Threading;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.Xml.Linq;
 
 namespace MyScheduler
 {
@@ -27,7 +29,7 @@ namespace MyScheduler
         //private MySchedulerCalendar DataCalendar = new MySchedulerCalendar();
         private MySchedulerUser User;
         private bool LoadUserOnSetup;
-        private string SettingsURI;
+        private string DefaultPath;
         private Process videoplayer;
         private DateTime CurrentDate;
         /// <summary>
@@ -75,7 +77,7 @@ namespace MyScheduler
                 if (((int)firstday + i) % 7  == 0)
                 {
                     j++;
-                    if (j>TaskCalendar.Rows.Count)
+                    if ((j>TaskCalendar.Rows.Count) && (i < days))
                     {
                         TaskCalendar.Rows.Add();
                         ResizeTaskCalendarRows();
@@ -86,19 +88,108 @@ namespace MyScheduler
 
         private void LoadSettings()
         {
-            XmlReader reader = XmlReader.Create(SettingsURI);
+            XmlReader reader = XmlReader.Create(DefaultPath);
 
             LoadUserOnSetup = reader.ReadElementContentAsBoolean("LoadUserOnSetup", "MyScheduler");
 
             if (LoadUserOnSetup)
             {
-
+                LoadUser(new FileStream(DefaultPath, FileMode.Open));
             }
             else
             {
                 User = new MySchedulerUser("", "John", "Doe");
                 User.Calendar.CreateFullCalendar(DateTime.Today.Year);
                 User.TaskCreated += User_TaskCreated;
+            }
+        }
+
+        private void LoadUser(Stream filepath)
+        {
+            var doc = XDocument.Load(filepath);
+
+            var uElement = doc.Element("MyScheduler").Element("User");
+
+            User.Username = uElement.Attribute("username").Value;
+            User.FirstName = uElement.Attribute("firstname").Value;
+            User.LastName = uElement.Attribute("lastname").Value;
+            
+            //gets all task objects for tasklist
+            Task t;
+            foreach (XElement e in doc.Element("MyScheduler").Element("User").Elements("Task"))
+            {
+                if (e.Value.Equals("Assignment"))
+                {
+                    t = new Assignment(e.Attribute("name").Value,
+                                        e.Attribute("description").Value,
+                                        e.Attribute("course").Value,
+                                        (DateTime)e.Attribute("date"));
+                    t.Priority = Task.StringToPriorityStatus(e.Attribute("priority").Value);
+                    ((Assignment)t).MaterialCovered = e.Attribute("material").Value;
+                    t.TaskComplete = bool.Parse(e.Attribute("taskcomplete").Value);
+                    User.AddTask(t);
+                }
+                else if (e.Value.Equals("Lecture"))
+                {
+                    t = new Lecture(e.Attribute("name").Value,
+                                        e.Attribute("description").Value,
+                                        e.Attribute("course").Value,
+                                        (DateTime)e.Attribute("date"),
+                                        (TimeSpan)e.Attribute("length"));
+                    t.TaskComplete = bool.Parse(e.Attribute("taskcomplete").Value);
+                    t.Priority = Task.StringToPriorityStatus(e.Attribute("priority").Value);
+                    foreach (XElement days in e.Elements("days"))
+                    {
+                        ((Lecture)t).AddDays(days.Value);
+                    }
+                    User.AddTask(t);
+                }
+                else if (e.Value.Equals("Miscellaneous"))
+                {
+                    t = new Miscellaneous(e.Attribute("name").Value,
+                                        e.Attribute("description").Value);
+                    t.TaskComplete = bool.Parse(e.Attribute("taskcomplete").Value);
+                    t.Date = (DateTime)e.Attribute("date");
+                    t.Priority = Task.StringToPriorityStatus(e.Attribute("priority").Value);
+                    User.AddTask(t);
+                }
+                //User.AddTask(t);
+            }
+
+            //Gets all media objects for medialist
+            Media m;
+            foreach (XElement e in doc.Element("MyScheduler").Element("User").Elements("Media"))
+            {
+                if (e.Value.Equals("Movie"))
+                {
+                    m = new Movie(e.Attribute("title").Value, (int)e.Attribute("runtime"));
+                    m.Description = e.Attribute("description").Value;
+                    m.Status = Media.StringToStatus(e.Attribute("status").Value);
+                    User.AddMedia(m);
+                }
+                else if (e.Value.Equals("TVshow"))
+                {
+                    m = new TVshow(e.Attribute("title").Value,
+                        (DateTime)e.Attribute("airtime"),
+                        (int)e.Attribute("totalepisodes"));
+                    ((TVshow)m).WatchedEpisodes = (int)e.Attribute("watchedepisodes");
+                    ((TVshow)m).URI = new Uri(e.Attribute("uri").Value);
+                    m.Description = e.Attribute("description").Value;
+                    m.Status = Media.StringToStatus(e.Attribute("status").Value);
+                    User.AddMedia(m);
+                }
+                else if (e.Value.Equals("Anime"))
+                {
+                    m = new Anime(e.Attribute("title").Value,
+                        (DateTime)e.Attribute("airtime"),
+                        (int)e.Attribute("totalepisodes"));
+                    ((Anime)m).WatchedEpisodes = (int)e.Attribute("watchedepisodes");
+                    ((Anime)m).URI = new Uri(e.Attribute("uri").Value);
+                    ((Anime)m).Downloaded = bool.Parse(e.Attribute("downloaded").Value);
+                    m.Description = e.Attribute("description").Value;
+                    m.Status = Media.StringToStatus(e.Attribute("status").Value);
+                    User.AddMedia(m);
+                }
             }
         }
 
@@ -173,9 +264,22 @@ namespace MyScheduler
             }
         }
 
-        private void SaveSettings()
+        private void SaveSettings(XmlWriter writer)
         {
+            writer.WriteStartElement("Settings");
 
+            //Writes LoadUserOnSetup value to Settings xml file
+            writer.WriteStartElement("LoadUserOnSetup");
+            writer.WriteValue(LoadUserOnSetup);
+            writer.WriteEndElement();
+
+            //Writes defualt path to load user on setup
+            writer.WriteStartElement("DefualtPath");
+            writer.WriteValue(DefaultPath);
+            writer.WriteEndElement();
+            //Will add more settings later
+
+            writer.WriteEndElement();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -188,6 +292,7 @@ namespace MyScheduler
             User.Calendar.CreateFullCalendar(DateTime.Today.Year);
             User.TaskCreated += User_TaskCreated;
             User.TaskRemoved += User_TaskRemoved;
+            User.PropertyChanged += User_PropertyChanged;
             
             /******************************
                    TabCalendar Setup
@@ -231,6 +336,11 @@ namespace MyScheduler
             ((AddMovie)panel1.Controls["AddMovie"]).AcceptButton.Click += AddMovieAcceptButton_Click;
             ((AddMovie)panel1.Controls["AddMovie"]).CancelButton.Click += AddMovieCancelButton_Click;
             
+        }
+
+        void User_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            this.Text = User.FirstName + " " + User.LastName;
         }
 
         private void AddMovieCancelButton_Click(object sender, EventArgs e)
@@ -373,12 +483,18 @@ namespace MyScheduler
 
         private void loadUserToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+            using (OpenFileDialog opDialog = new OpenFileDialog())
+            {
+                if (opDialog.ShowDialog() == DialogResult.OK)
+                {
+                    LoadUser(new FileStream(opDialog.FileName, FileMode.Open));
+                }
+            }
         }
 
         private void newUserToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (UserSetup uSetup = new UserSetup())
+            using (UserSetup uSetup = new UserSetup(User.Username, User.FirstName, User.LastName))
             {
                 if (uSetup.ShowDialog() == DialogResult.OK)
                 {
@@ -400,10 +516,22 @@ namespace MyScheduler
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabControl1.SelectedIndex == 2)
+            switch (tabControl1.SelectedIndex)
             {
-                //videoplayer = Process.Start("C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe");
-                //videoplayer.WaitForInputIdle();
+                case 0: MonthLabel.Visible = true;
+                    PreviousMonthButton.Visible = true;
+                    NextMonthButton.Visible = true;
+                    break;
+                case 1: MonthLabel.Visible = false;
+                    PreviousMonthButton.Visible = false;
+                    NextMonthButton.Visible = false;
+                    break;
+                case 2: //videoplayer = Process.Start("C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe");
+                    //videoplayer.WaitForInputIdle();
+                    MonthLabel.Visible = false;
+                    PreviousMonthButton.Visible = false;
+                    NextMonthButton.Visible = false;
+                    break;
 
             }
         }
@@ -526,7 +654,7 @@ namespace MyScheduler
                 AddDatesToCalendar(new DateTime(CurrentDate.Year, (int)MonthLabel.Tag + 1, 1));
             }
 
-            foreach (Task t in User.Calendar.GetMonth((int)MonthLabel.Tag).MonthTasks)
+            foreach (Task t in User.Calendar.GetMonth(CurrentDate.Year, (int)MonthLabel.Tag).MonthTasks)
             {
                 if (t != null)
                 {
@@ -557,7 +685,7 @@ namespace MyScheduler
                 AddDatesToCalendar(new DateTime(CurrentDate.Year, (int)MonthLabel.Tag - 1, 1));
             }
 
-            foreach (Task t in User.Calendar.GetMonth((int)MonthLabel.Tag).MonthTasks)
+            foreach (Task t in User.Calendar.GetMonth(CurrentDate.Year, (int)MonthLabel.Tag).MonthTasks)
             {
                 if (t != null)
                 {
@@ -588,6 +716,159 @@ namespace MyScheduler
         {
             PreviousMonthButton.Left = MonthLabel.Left - (PreviousMonthButton.Width + control_padding);
             NextMonthButton.Left = MonthLabel.Right + control_padding;
+        }
+
+        private void removeMediaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (null == MediaList.SelectedNode || null == MediaList.SelectedNode.Parent)
+            {
+                MessageBox.Show("No Media Selected", "Invalid Operation");
+                return;
+            }
+            else
+            {
+                User.RemoveMedia((Media)MediaList.SelectedNode.Tag);
+                MediaList.SelectedNode.Remove();
+
+                mediaInfo1.TitleLabel.Text = "Title";//sets title label
+                mediaInfo1.StatusLabel.Text = "Status";//sets status label
+                mediaInfo1.DownloadLabel.Visible = false;
+                mediaInfo1.SetEpisodes(0, 1);//sets episodes to 1 to avoid divide by zero exception
+                mediaInfo1.EpisodeLabel.Text = "ep/Ep";
+                mediaInfo1.AirtimeLabel.Visible = false;
+                mediaInfo1.richTextBoxDescription.Text = "";//sets description
+                mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
+            }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (SettingsForm sForm = new SettingsForm())
+            {
+                if (sForm.ShowDialog() == DialogResult.OK)
+                {
+                    LoadUserOnSetup = sForm.LoadUserOnSetup;
+                    DefaultPath = sForm.LoadUserFilePath;
+                }
+            }
+        }
+
+        private void saveUserToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sDialog = new SaveFileDialog())
+            {
+                sDialog.Filter = "xml file (*.xml)|*.xml";
+                sDialog.FilterIndex = 2;
+
+                if (sDialog.ShowDialog() == DialogResult.OK)
+                {
+                    XmlWriterSettings settings = new XmlWriterSettings();
+                    settings.Indent = true;
+                    XmlWriter writer = XmlWriter.Create(sDialog.FileName, settings);
+
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("MyScheduler");
+
+                    writer.WriteStartElement("User");//starts an element for the user
+                    writer.WriteAttributeString("username", User.Username);
+                    writer.WriteAttributeString("firstname", User.FirstName);
+                    writer.WriteAttributeString("lastname", User.LastName);
+
+                    foreach (Task t in User.Tasklist)//loop to write all the tasks to xml file
+                    {
+                        writer.WriteStartElement("Task");
+                        writer.WriteAttributeString("name", t.Name);
+                        writer.WriteAttributeString("description", t.Description);
+                        writer.WriteStartAttribute("priority");
+                        writer.WriteValue(t.Priority.ToString());
+                        writer.WriteEndAttribute();
+                        writer.WriteStartAttribute("date");
+                        writer.WriteValue(t.Date);
+                        writer.WriteEndAttribute();
+                        writer.WriteStartAttribute("taskcomplete");
+                        writer.WriteValue(t.TaskComplete);
+                        writer.WriteEndAttribute();
+                        if (t is Assignment)
+                        {
+                            writer.WriteAttributeString("course",((Assignment)t).Course);
+                            writer.WriteAttributeString("material",((Assignment)t).MaterialCovered);
+                            writer.WriteValue("Assignment");
+                        }
+                        else if (t is Lecture)
+                        {
+                            writer.WriteAttributeString("course",((Lecture)t).Course);
+                            writer.WriteStartAttribute("length");
+                            writer.WriteValue(((Lecture)t).Length);
+                            writer.WriteEndAttribute();
+                            foreach (DayOfWeek d in ((Lecture)t).Weekdays)
+                            {
+                                writer.WriteStartElement("days");
+                                writer.WriteValue(d);
+                                writer.WriteEndElement();
+                            }
+                            
+                            writer.WriteValue("Lecture");
+                        }
+                        else
+                        {
+                            writer.WriteValue("Miscellaneous");
+                        }
+                        writer.WriteEndElement();
+                    }
+
+                    foreach (Media m in User.Medialist)//loop for every media object
+                    {
+                        writer.WriteStartElement("Media");
+                        writer.WriteAttributeString("title", m.Title);
+                        writer.WriteAttributeString("description", m.Description);
+                        writer.WriteStartAttribute("status");
+                        writer.WriteValue(m.Status.ToString());
+                        writer.WriteEndAttribute();
+                        if (m is Movie)
+                        {
+                            writer.WriteStartAttribute("runtime");
+                            writer.WriteValue(((Movie)m).Runtime);
+                            writer.WriteEndAttribute();
+                            writer.WriteValue("Movie");
+                        }
+                        else if (m is TVshow)
+                        {
+                            var tv = m as TVshow;
+                            writer.WriteStartAttribute("airtime");
+                            writer.WriteValue(tv.Airtime);
+                            writer.WriteEndAttribute();
+                            writer.WriteStartAttribute("totalepisodes");
+                            writer.WriteValue(tv.TotalEpisodes);
+                            writer.WriteEndAttribute();
+                            writer.WriteStartAttribute("watchedepisodes");
+                            writer.WriteValue(tv.WatchedEpisodes);
+                            writer.WriteEndAttribute();
+                            writer.WriteStartAttribute("uri");
+                            writer.WriteValue(tv.URI);
+                            writer.WriteEndAttribute();
+                            if (m is Anime)
+                            {
+                                writer.WriteStartAttribute("downloaded");
+                                writer.WriteValue(((Anime)m).Downloaded);
+                                writer.WriteEndAttribute();
+                                writer.WriteValue("Anime");
+                            }
+                            else
+                            {
+                                writer.WriteValue("TVshow");
+                            }
+                        }
+                        writer.WriteEndElement();
+                    }
+                    writer.WriteEndElement();
+
+                    SaveSettings(writer);
+
+                    writer.WriteEndDocument();
+                    writer.Flush();
+                    writer.Close();
+                }
+            }
         }
 
                  

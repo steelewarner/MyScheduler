@@ -29,9 +29,12 @@ namespace MyScheduler
             get { return _lastname; }
         }
 
-        public UserSetup()
+        public UserSetup(string uName, string fName, string lname)
         {
             InitializeComponent();
+            textBox1.Text = uName;
+            textBox2.Text = fName;
+            textBox3.Text = lname;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -52,20 +55,8 @@ namespace MyScheduler
 
         private void button1_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog OpFileDialog = new OpenFileDialog())
-            {
-                if (OpFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    XmlReader reader = XmlReader.Create(OpFileDialog.FileName);
-
-                    _username = reader.ReadElementContentAsString("Username", "User");
-                    _firstname = reader.ReadElementContentAsString("Firstname", "User");
-                    _lastname = reader.ReadElementContentAsString("Lastname", "User");
-                    this.DialogResult = DialogResult.OK;
-                    this.Close();
-                }
-            }
-            
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
         }
     }
 }

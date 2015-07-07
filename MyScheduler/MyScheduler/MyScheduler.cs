@@ -1,7 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
- * Last Updated: 6/29/15
+ * Last Updated: 7/6/15
  */
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace MyScheduler
     public enum PriorityStatus { Low = 0, Medium = 1, High = 2 };
     public enum ShowStatus { Airing, FinishedAiring, Completed, PlanToWatch };
     
-    public sealed class MySchedulerUser
+    public sealed class MySchedulerUser : INotifyPropertyChanged
     {
         /// <summary>
         /// Creates a new user with given parameters
@@ -45,10 +45,12 @@ namespace MyScheduler
             //AddTask(((TaskEventArgs)e).ArgsTask);
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler TaskCreated;
         public event EventHandler TaskRemoved;
         public event EventHandler TaskCompleted;
         public event EventHandler MediaAdded;
+        public event EventHandler MediaRemoved;
 
         private string _username;
         private string _firstname;
@@ -97,13 +99,39 @@ namespace MyScheduler
             }
         }
 
+        private void OnMediaRemoved(Media removeMedia)
+        {
+            EventHandler handler = MediaRemoved;
+            if (null != handler)
+            {
+                handler(this, new MediaEventArgs(removeMedia));
+            }
+        }
+
+        private void OnPropertyChanged(string name)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (null != handler)
+            {
+                handler(this, new PropertyChangedEventArgs(name));
+            }
+        }
+
         /// <summary>
         /// Gets or sets the username of this user
         /// </summary>
         public string Username
         {
             get { return _username; }
-            set { _username = value; }
+            set 
+            { 
+                if (_username != value)
+                { 
+                    _username = value;
+                    OnPropertyChanged("Username");
+                }
+                
+            }
         }
         /// <summary>
         /// Gets or sets the user's first name
@@ -111,7 +139,14 @@ namespace MyScheduler
         public string FirstName
         {
             get { return _firstname; }
-            set { _firstname = value; }
+            set 
+            {
+                if (_firstname !=  value)
+                {
+                    _firstname = value;
+                    OnPropertyChanged("FirstName");
+                }
+            }
         }
         /// <summary>
         /// Gets or sets the user's last name
@@ -119,7 +154,14 @@ namespace MyScheduler
         public string LastName
         {
             get { return _lastname; }
-            set { _lastname = value; }
+            set 
+            {
+                if (_lastname != value)
+                {
+                    _lastname = value;
+                    OnPropertyChanged("LastName");
+                }
+            }
         }
         /// <summary>
         /// Gets the list of tasks this user has
@@ -151,7 +193,7 @@ namespace MyScheduler
             if (!_taskList.Contains(t))
             {
                 _taskList.Add(t);
-                this._calendar.GetMonth(t.Date.Month).GetDay(t.Date.Day).AddTask(t);
+                this._calendar.GetMonth(t.Date.Year, t.Date.Month).GetDay(t.Date.Day).AddTask(t);
                 OnTaskCreated(t);
                 _taskList[_taskList.Count - 1].TaskCompleted += MySchedulerUser_TaskComplete;
             }
@@ -176,8 +218,17 @@ namespace MyScheduler
         public void RemoveTask(Task t)
         {
             _taskList.Remove(t);
-            this._calendar.GetMonth(t.Date.Month).GetDay(t.Date.Day).RemoveTask(t);
+            this._calendar.GetMonth(t.Date.Year, t.Date.Month).GetDay(t.Date.Day).RemoveTask(t);
             OnTaskRemoved(t);
+        }
+        /// <summary>
+        /// Removes media item from media list
+        /// </summary>
+        /// <param name="m">Media item to be removed</param>
+        public void RemoveMedia(Media m)
+        {
+            _medialist.Remove(m);
+            OnMediaRemoved(m);
         }
 
         public void MySchedulerUser_TaskComplete(object sender, EventArgs e)
@@ -229,7 +280,7 @@ namespace MyScheduler
             _name = name;
             _description = new StringBuilder(description);
             _priority = PriorityStatus.Medium;
-            taskcomplete = false;
+            _taskcomplete = false;
         }
         public override bool Equals(object obj)
         {
@@ -240,7 +291,7 @@ namespace MyScheduler
         }
 
         public event EventHandler TaskCompleted;
-        protected bool taskcomplete;
+        protected bool _taskcomplete;
         protected string _name;//name of task
         protected StringBuilder _description;//description of task
         protected  PriorityStatus _priority;//the priority of the task
@@ -287,10 +338,10 @@ namespace MyScheduler
         /// </summary>
         public bool TaskComplete
         {
-            get { return taskcomplete; }
+            get { return _taskcomplete; }
             set 
             { 
-                taskcomplete = value;
+                _taskcomplete = value;
                 if (value)
                 {
                     OnTaskComplete();
@@ -305,6 +356,21 @@ namespace MyScheduler
             {
                 handler(this, new TaskEventArgs(this));
             }
+        }
+        /// <summary>
+        /// Converts a string to PriorityStatus
+        /// </summary>
+        /// <param name="str">string to be converted</param>
+        /// <returns></returns>
+        public static PriorityStatus StringToPriorityStatus(string str)
+        {
+            switch(str)
+            {
+                case "High": return PriorityStatus.High;
+                case "Medium": return PriorityStatus.Medium;
+                case "Low": return PriorityStatus.Low;
+            }
+            return 0;
         }
     }
 
@@ -372,7 +438,6 @@ namespace MyScheduler
         }
 
         private string _course;
-        //private DateTime _time;
         private TimeSpan _length;
         private List<DayOfWeek> _days;
 
@@ -410,6 +475,26 @@ namespace MyScheduler
             if (!_days.Contains(weekday))
             {
                 _days.Add(weekday);
+            }
+        }
+        public void AddDays(string weekday)
+        {
+            switch(weekday)
+            {
+                case "Sunday": AddDays(DayOfWeek.Sunday);
+                    break;
+                case "Monday": AddDays(DayOfWeek.Monday);
+                    break;
+                case "Tuesday": AddDays(DayOfWeek.Tuesday);
+                    break;
+                case "Wednesday": AddDays(DayOfWeek.Wednesday);
+                    break;
+                case "Thursday": AddDays(DayOfWeek.Thursday);
+                    break;
+                case "Friday": AddDays(DayOfWeek.Friday);
+                    break;
+                case "Saturday": AddDays(DayOfWeek.Saturday);
+                    break;
             }
         }
         /// <summary>
@@ -537,6 +622,17 @@ namespace MyScheduler
             }
             return false;
         }
+        public static ShowStatus StringToStatus(string stringtostatus)
+        {
+            switch (stringtostatus)
+            {
+                case "Airing": return ShowStatus.Airing;
+                case "FinishAiring": return ShowStatus.FinishedAiring;
+                case "Completed": return ShowStatus.Completed;
+                case "PlanToWatch": return ShowStatus.PlanToWatch;
+            }
+            return 0;
+        }
     }
 
     internal sealed class StatusChangedEventArgs: EventArgs
@@ -625,12 +721,12 @@ namespace MyScheduler
     /// </summary>
     public class TVshow : Media
     {
-        public TVshow(string title, DateTime airtime, int episodes) : base(title)
+        public TVshow(string title, DateTime airtime, int totalepisodes) : base(title)
         {
             _airtime = airtime;
-            _totalEpisodes = episodes;
+            _totalEpisodes = totalepisodes;
             _watchedEpisodes = 0;
-            _uri = new Uri("C:\\Users\\Steele\\Videos\\Anime Shows\\Bakemonogatari[Koharubi][gg][pem]");
+            //_uri = new Uri(Uri.UriSchemeFile);
         }
 
         public event EventHandler EpisodeWatched;
@@ -733,35 +829,62 @@ namespace MyScheduler
     {
         public MySchedulerCalendar()
         {
-            _months = new MySchedulerMonth[12];
+            //_months = new MySchedulerMonth[12];
+            _years = new Dictionary<int, MySchedulerMonth[]>();
         }
 
         public event EventHandler TaskAdded;
         public event EventHandler TaskRemoved;
 
-        private MySchedulerMonth[] _months;
+        //private MySchedulerMonth[] _months;
+        private Dictionary<int, MySchedulerMonth[]> _years;
         /// <summary>
         /// Gets the month from the corresponding month number
         /// </summary>
         /// <param name="month_number">number of the month desired</param>
         /// <returns></returns>
-        public MySchedulerMonth GetMonth(int month_number)
+        public MySchedulerMonth GetMonth(int year, int month_number)
         {
             if (month_number > 0 && month_number < 13)
             {
-                return _months[month_number - 1];
+                try
+                {
+                    if (null == _years[year][month_number - 1])
+                    {
+                        SetMonth(year, new MySchedulerMonth(new DateTime(year, month_number, 1)));
+                    }
+                    return _years[year][month_number - 1];
+                }
+                catch(KeyNotFoundException)
+                {
+                    SetMonth(year, new MySchedulerMonth(new DateTime(year, month_number, 1)));
+                    return _years[year][month_number - 1];
+                }
+                
             }
+
             return null;
         }
         /// <summary>
         /// Sets the month that is passed by value
         /// </summary>
         /// <param name="month">Month to be added to calendar</param>
-        public void SetMonth(MySchedulerMonth month)
+        public void SetMonth(int year, MySchedulerMonth month)
         {
-            _months[month.Month - 1] = month;
-            _months[month.Month - 1].TaskAdded += MySchedulerCalendar_TaskAdded;
-            _months[month.Month - 1].TaskRemoved += MySchedulerCalendar_TaskRemoved;
+            try
+            {
+                if (null == _years[year])
+                {
+                    _years.Add(year, new MySchedulerMonth[12]);
+                }
+            }
+            catch(KeyNotFoundException)
+            {
+                _years.Add(year, new MySchedulerMonth[12]);
+            }
+            _years[year][month.Month - 1] = month;
+            _years[year][month.Month - 1].TaskAdded += MySchedulerCalendar_TaskAdded;
+            _years[year][month.Month - 1].TaskRemoved += MySchedulerCalendar_TaskRemoved;
         }
 
         
@@ -770,17 +893,21 @@ namespace MyScheduler
         /// </summary>
         /// <param name="monthnumber">number of the year the month is</param>
         /// <returns></returns>
-        public bool isMonthSet(int monthnumber)
+        public bool isMonthSet(int year, int monthnumber)
         {
             try
             {
-                return (_months[monthnumber - 1] != null);
+                return (_years[year][monthnumber - 1] != null);
             }
             catch (ArgumentNullException)
             {
                 return false;
             }
             catch(NullReferenceException)
+            {
+                return false;
+            }
+            catch(KeyNotFoundException)
             {
                 return false;
             }
@@ -793,9 +920,9 @@ namespace MyScheduler
         {
             for (int i = 1; i < 13; i++)
             {
-                if (!isMonthSet(i))
+                if (!isMonthSet(year, i))
                 {
-                    this.SetMonth(new MySchedulerMonth(new DateTime(year, i, 1)));
+                    this.SetMonth(year, new MySchedulerMonth(new DateTime(year, i, 1)));
                     //this.GetMonth(i).TaskAdded += MySchedulerCalendar_TaskAdded;
                 }
             }

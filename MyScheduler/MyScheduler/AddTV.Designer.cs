@@ -44,6 +44,7 @@
             this.CancelButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.DescriptionTextbox = new System.Windows.Forms.TextBox();
+            this.BrowseButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.TotalEpisodesNumUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.WatchedEpisodesNumUpDown)).BeginInit();
             this.SuspendLayout();
@@ -124,7 +125,7 @@
             // 
             this.URItextbox.Location = new System.Drawing.Point(39, 140);
             this.URItextbox.Name = "URItextbox";
-            this.URItextbox.Size = new System.Drawing.Size(271, 20);
+            this.URItextbox.Size = new System.Drawing.Size(203, 20);
             this.URItextbox.TabIndex = 5;
             // 
             // StatusLabel
@@ -187,10 +188,21 @@
             this.DescriptionTextbox.Size = new System.Drawing.Size(241, 20);
             this.DescriptionTextbox.TabIndex = 1;
             // 
+            // BrowseButton
+            // 
+            this.BrowseButton.Location = new System.Drawing.Point(248, 138);
+            this.BrowseButton.Name = "BrowseButton";
+            this.BrowseButton.Size = new System.Drawing.Size(62, 23);
+            this.BrowseButton.TabIndex = 16;
+            this.BrowseButton.Text = "Browse";
+            this.BrowseButton.UseVisualStyleBackColor = true;
+            this.BrowseButton.Click += new System.EventHandler(this.BrowseButton_Click);
+            // 
             // AddTV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.BrowseButton);
             this.Controls.Add(this.DescriptionTextbox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.CancelButton);
@@ -235,5 +247,6 @@
         public System.Windows.Forms.ListBox StatusListBox;
         private System.Windows.Forms.Label label3;
         public System.Windows.Forms.TextBox DescriptionTextbox;
+        private System.Windows.Forms.Button BrowseButton;
     }
 }

@@ -41,12 +41,16 @@
             this.addTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ScheduleTab = new System.Windows.Forms.TabPage();
             this.ListViewSchedule = new System.Windows.Forms.ListView();
+            this.ScheduleContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.removeTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MediaTab = new System.Windows.Forms.TabPage();
+            this.mediaInfo1 = new MyScheduler.MediaInfo();
             this.MediaList = new System.Windows.Forms.TreeView();
             this.AddMediacontextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addAnimeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addTVShowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addMovieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.Toolbar = new System.Windows.Forms.MenuStrip();
@@ -59,19 +63,16 @@
             this.MonthLabel = new System.Windows.Forms.Label();
             this.NextMonthButton = new System.Windows.Forms.Button();
             this.PreviousMonthButton = new System.Windows.Forms.Button();
-            this.ScheduleContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.removeTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mediaInfo1 = new MyScheduler.MediaInfo();
             this.tabControl1.SuspendLayout();
             this.CalendarTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).BeginInit();
             this.TaskCalendarContextMenuStrip.SuspendLayout();
             this.ScheduleTab.SuspendLayout();
+            this.ScheduleContextMenuStrip.SuspendLayout();
             this.MediaTab.SuspendLayout();
             this.AddMediacontextMenuStrip.SuspendLayout();
             this.panel1.SuspendLayout();
             this.Toolbar.SuspendLayout();
-            this.ScheduleContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -171,6 +172,20 @@
             this.ListViewSchedule.View = System.Windows.Forms.View.Details;
             this.ListViewSchedule.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.ListViewSchedule_ColumnClick);
             // 
+            // ScheduleContextMenuStrip
+            // 
+            this.ScheduleContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.removeTaskToolStripMenuItem});
+            this.ScheduleContextMenuStrip.Name = "ScheduleContextMenuStrip";
+            this.ScheduleContextMenuStrip.Size = new System.Drawing.Size(145, 26);
+            // 
+            // removeTaskToolStripMenuItem
+            // 
+            this.removeTaskToolStripMenuItem.Name = "removeTaskToolStripMenuItem";
+            this.removeTaskToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.removeTaskToolStripMenuItem.Text = "Remove Task";
+            this.removeTaskToolStripMenuItem.Click += new System.EventHandler(this.removeTaskToolStripMenuItem_Click);
+            // 
             // MediaTab
             // 
             this.MediaTab.Controls.Add(this.mediaInfo1);
@@ -182,6 +197,16 @@
             this.MediaTab.TabIndex = 2;
             this.MediaTab.Text = "Media";
             this.MediaTab.UseVisualStyleBackColor = true;
+            // 
+            // mediaInfo1
+            // 
+            this.mediaInfo1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.mediaInfo1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.mediaInfo1.Location = new System.Drawing.Point(0, 363);
+            this.mediaInfo1.Name = "mediaInfo1";
+            this.mediaInfo1.Size = new System.Drawing.Size(620, 65);
+            this.mediaInfo1.TabIndex = 2;
             // 
             // MediaList
             // 
@@ -210,30 +235,38 @@
             this.AddMediacontextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addAnimeToolStripMenuItem,
             this.addTVShowToolStripMenuItem,
-            this.addMovieToolStripMenuItem});
+            this.addMovieToolStripMenuItem,
+            this.removeMediaToolStripMenuItem});
             this.AddMediacontextMenuStrip.Name = "AddMediacontextMenuStrip";
-            this.AddMediacontextMenuStrip.Size = new System.Drawing.Size(146, 70);
+            this.AddMediacontextMenuStrip.Size = new System.Drawing.Size(154, 92);
             // 
             // addAnimeToolStripMenuItem
             // 
             this.addAnimeToolStripMenuItem.Name = "addAnimeToolStripMenuItem";
-            this.addAnimeToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.addAnimeToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.addAnimeToolStripMenuItem.Text = "Add Anime";
             this.addAnimeToolStripMenuItem.Click += new System.EventHandler(this.addAnimeToolStripMenuItem_Click);
             // 
             // addTVShowToolStripMenuItem
             // 
             this.addTVShowToolStripMenuItem.Name = "addTVShowToolStripMenuItem";
-            this.addTVShowToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.addTVShowToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.addTVShowToolStripMenuItem.Text = "Add TV Show";
             this.addTVShowToolStripMenuItem.Click += new System.EventHandler(this.addTVShowToolStripMenuItem_Click);
             // 
             // addMovieToolStripMenuItem
             // 
             this.addMovieToolStripMenuItem.Name = "addMovieToolStripMenuItem";
-            this.addMovieToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.addMovieToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.addMovieToolStripMenuItem.Text = "Add Movie";
             this.addMovieToolStripMenuItem.Click += new System.EventHandler(this.addMovieToolStripMenuItem_Click);
+            // 
+            // removeMediaToolStripMenuItem
+            // 
+            this.removeMediaToolStripMenuItem.Name = "removeMediaToolStripMenuItem";
+            this.removeMediaToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.removeMediaToolStripMenuItem.Text = "Remove Media";
+            this.removeMediaToolStripMenuItem.Click += new System.EventHandler(this.removeMediaToolStripMenuItem_Click);
             // 
             // panel1
             // 
@@ -279,7 +312,7 @@
             // 
             this.newUserToolStripMenuItem.Name = "newUserToolStripMenuItem";
             this.newUserToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
-            this.newUserToolStripMenuItem.Text = "Create User";
+            this.newUserToolStripMenuItem.Text = "Edit User";
             this.newUserToolStripMenuItem.Click += new System.EventHandler(this.newUserToolStripMenuItem_Click);
             // 
             // loadUserToolStripMenuItem
@@ -294,6 +327,7 @@
             this.saveUserToolStripMenuItem.Name = "saveUserToolStripMenuItem";
             this.saveUserToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.saveUserToolStripMenuItem.Text = "Save User Schedule";
+            this.saveUserToolStripMenuItem.Click += new System.EventHandler(this.saveUserToolStripMenuItem_Click);
             // 
             // optionsToolStripMenuItem
             // 
@@ -308,6 +342,7 @@
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.settingsToolStripMenuItem.Text = "Settings";
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
             // MonthLabel
             // 
@@ -347,30 +382,6 @@
             this.PreviousMonthButton.UseVisualStyleBackColor = true;
             this.PreviousMonthButton.Click += new System.EventHandler(this.PreviousMonthButton_Click);
             // 
-            // ScheduleContextMenuStrip
-            // 
-            this.ScheduleContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.removeTaskToolStripMenuItem});
-            this.ScheduleContextMenuStrip.Name = "ScheduleContextMenuStrip";
-            this.ScheduleContextMenuStrip.Size = new System.Drawing.Size(145, 26);
-            // 
-            // removeTaskToolStripMenuItem
-            // 
-            this.removeTaskToolStripMenuItem.Name = "removeTaskToolStripMenuItem";
-            this.removeTaskToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
-            this.removeTaskToolStripMenuItem.Text = "Remove Task";
-            this.removeTaskToolStripMenuItem.Click += new System.EventHandler(this.removeTaskToolStripMenuItem_Click);
-            // 
-            // mediaInfo1
-            // 
-            this.mediaInfo1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.mediaInfo1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.mediaInfo1.Location = new System.Drawing.Point(0, 363);
-            this.mediaInfo1.Name = "mediaInfo1";
-            this.mediaInfo1.Size = new System.Drawing.Size(620, 65);
-            this.mediaInfo1.TabIndex = 2;
-            // 
             // MySchedulerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -393,12 +404,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).EndInit();
             this.TaskCalendarContextMenuStrip.ResumeLayout(false);
             this.ScheduleTab.ResumeLayout(false);
+            this.ScheduleContextMenuStrip.ResumeLayout(false);
             this.MediaTab.ResumeLayout(false);
             this.AddMediacontextMenuStrip.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.Toolbar.ResumeLayout(false);
             this.Toolbar.PerformLayout();
-            this.ScheduleContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -434,6 +445,7 @@
         private System.Windows.Forms.ToolStripMenuItem addMovieToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip ScheduleContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem removeTaskToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem removeMediaToolStripMenuItem;
     }
 }
 
