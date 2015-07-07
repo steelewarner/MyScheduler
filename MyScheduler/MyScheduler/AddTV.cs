@@ -39,10 +39,12 @@ namespace MyScheduler
         {
             WatchedEpisodesNumUpDown.Maximum = TotalEpisodesNumUpDown.Value;
 
-            StatusListBox.Items.Add(ShowStatus.Airing);
-            StatusListBox.Items.Add(ShowStatus.Completed);
-            StatusListBox.Items.Add(ShowStatus.FinishedAiring);
-            StatusListBox.Items.Add(ShowStatus.PlanToWatch);
+            var stats = Enum.GetValues(typeof(ShowStatus));
+            foreach (ShowStatus s in stats)
+            {
+                StatusListBox.Items.Add(s);
+            }
+
             StatusListBox.SelectedIndex = 0;
         }
 
@@ -80,13 +82,16 @@ namespace MyScheduler
         /// </summary>
         public void Clear()
         {
-            foreach (TextBox tb in this.Controls)
+            foreach (Control c in this.Controls)
             {
-                tb.Text = string.Empty;
-            }
-            foreach(NumericUpDown num in this.Controls)
-            {
-                num.Value = 0;
+                if (c is TextBox)
+                {
+                    c.Text = string.Empty;
+                }
+                else if (c is NumericUpDown)
+                {
+                    ((NumericUpDown)c).Value = 0;
+                }
             }
 
             dateClock1.textBox1.Text = "MM";

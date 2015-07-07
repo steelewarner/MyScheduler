@@ -150,8 +150,8 @@ namespace MyScheduler
             dateClock1.textBox1.Text = "MM";
             dateClock1.textBox2.Text = "DD";
             dateClock1.textBox3.Text = "YYYY";
-            dateClock1.textBox4.Text = "hh";
-            dateClock1.textBox5.Text = "mm";
+            dateClock1.textBox4.Text = "24";
+            dateClock1.textBox5.Text = "00";
             DisplayAssignmentUI();
             listBox1.SelectedItem = listBox1.Items[0];
         }
