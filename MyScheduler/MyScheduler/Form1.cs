@@ -3,7 +3,7 @@
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
  * Last Updated: 7/6/2015
- * version: v0.6.9
+ * version: v0.7.10
  * ***********************************************************************/
 
 using System;
@@ -88,12 +88,13 @@ namespace MyScheduler
 
         private void LoadSettings()
         {
-            XmlReader reader = XmlReader.Create(DefaultPath);
+            var reader = XDocument.Load("SettingsXML.xml");
 
-            LoadUserOnSetup = reader.ReadElementContentAsBoolean("LoadUserOnSetup", "MyScheduler");
-
+            LoadUserOnSetup = (bool)reader.Element("Settings").Element("LoadUserOnSetup");
+            
             if (LoadUserOnSetup)
             {
+                DefaultPath = reader.Element("Settings").Element("DefaultPath").Value;
                 LoadUser(new FileStream(DefaultPath, FileMode.Open));
             }
             else
@@ -101,6 +102,8 @@ namespace MyScheduler
                 User = new MySchedulerUser("", "John", "Doe");
                 User.Calendar.CreateFullCalendar(DateTime.Today.Year);
                 User.TaskCreated += User_TaskCreated;
+                User.TaskRemoved += User_TaskRemoved;
+                User.PropertyChanged += User_PropertyChanged;
             }
         }
 
@@ -109,10 +112,24 @@ namespace MyScheduler
             var doc = XDocument.Load(filepath);
 
             var uElement = doc.Element("MyScheduler").Element("User");
-
-            User.Username = uElement.Attribute("username").Value;
-            User.FirstName = uElement.Attribute("firstname").Value;
-            User.LastName = uElement.Attribute("lastname").Value;
+            if (null == User)
+            {
+                User = new MySchedulerUser(uElement.Attribute("username").Value,
+                                            uElement.Attribute("firstname").Value,
+                                            uElement.Attribute("lastname").Value);
+            }
+            else
+            {
+                User.Username = uElement.Attribute("username").Value;
+                User.FirstName = uElement.Attribute("firstname").Value;
+                User.LastName = uElement.Attribute("lastname").Value;
+            }
+            User.Calendar.CreateFullCalendar(DateTime.Today.Year);
+            User.TaskCreated += User_TaskCreated;
+            User.TaskRemoved += User_TaskRemoved;
+            User.PropertyChanged += User_PropertyChanged;
+            User.MediaAdded += User_MediaAdded;
+            User.MediaRemoved += User_MediaRemoved;
             
             //gets all task objects for tasklist
             Task t;
@@ -191,6 +208,12 @@ namespace MyScheduler
                     User.AddMedia(m);
                 }
             }
+            filepath.Close();
+        }
+
+        private void User_MediaRemoved(object sender, EventArgs e)
+        {
+            
         }
 
         private void User_TaskCreated(object sender, EventArgs e)
@@ -253,7 +276,7 @@ namespace MyScheduler
             ListViewSchedule.Columns.Add("Name", 200, HorizontalAlignment.Center);
             ListViewSchedule.Columns.Add("Date", 200, HorizontalAlignment.Center);
             ListViewSchedule.Columns.Add("Description", 200, HorizontalAlignment.Left);
-
+            /*
             foreach (Task t in User.Tasklist)//Adds all tasks in the user's tasklist to schedule
             {
                 ListViewItem itm = new ListViewItem(t.GetType().Name);
@@ -261,7 +284,7 @@ namespace MyScheduler
                 itm.SubItems.Add(t.Date.ToString());
                 itm.SubItems.Add(t.Description);
                 ListViewSchedule.Items.Add(itm);
-            }
+            }*/
         }
 
         private void SaveSettings(XmlWriter writer)
@@ -273,8 +296,8 @@ namespace MyScheduler
             writer.WriteValue(LoadUserOnSetup);
             writer.WriteEndElement();
 
-            //Writes defualt path to load user on setup
-            writer.WriteStartElement("DefualtPath");
+            //Writes default path to load user on setup
+            writer.WriteStartElement("DefaultPath");
             writer.WriteValue(DefaultPath);
             writer.WriteEndElement();
             //Will add more settings later
@@ -284,16 +307,6 @@ namespace MyScheduler
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            /******************************
-                     Load Settings
-             ******************************/
-            //LoadSettings();
-            User = new MySchedulerUser("", "John", "Doe");
-            User.Calendar.CreateFullCalendar(DateTime.Today.Year);
-            User.TaskCreated += User_TaskCreated;
-            User.TaskRemoved += User_TaskRemoved;
-            User.PropertyChanged += User_PropertyChanged;
-            
             /******************************
                    TabCalendar Setup
              ******************************/
@@ -322,7 +335,7 @@ namespace MyScheduler
              ******************************/
             MediaTab.Resize += MediaTab_Resize;
             MediaTab_Resize(this, new EventArgs());
-            User.MediaAdded += User_MediaAdded;
+            //User.MediaAdded += User_MediaAdded;
 
             panel1.Controls.Add(new AddTV("AddAnime"));
             ((AddTV)panel1.Controls["AddAnime"]).AcceptButton.Click += AddAnimeAcceptButton_Click;
@@ -336,6 +349,10 @@ namespace MyScheduler
             ((AddMovie)panel1.Controls["AddMovie"]).AcceptButton.Click += AddMovieAcceptButton_Click;
             ((AddMovie)panel1.Controls["AddMovie"]).CancelButton.Click += AddMovieCancelButton_Click;
             
+            /******************************
+                     Load Settings
+             ******************************/
+            LoadSettings();
         }
 
         void User_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -396,6 +413,7 @@ namespace MyScheduler
                 /*Using User_MediaAdded method above prevents duplicates*/
                 panel1.Controls["webBrowser1"].Visible = true;
                 panel1.Controls["AddAnime"].Visible = false;
+                japanesecartoon.Clear();
             }
             
         }
@@ -413,6 +431,7 @@ namespace MyScheduler
                 User.AddMedia(show);//Adds show to user's media list
                 panel1.Controls["webBrowser1"].Visible = true;
                 panel1.Controls["AddTV"].Visible = false;
+                showcontrol.Clear();
             }
             
         }
@@ -429,6 +448,7 @@ namespace MyScheduler
                 User.AddMedia(mover);//adds movie to medialist
                 panel1.Controls["webBrowser1"].Visible = true;//changes display
                 panel1.Controls["AddMovie"].Visible = false;
+                cinema.Clear();
             }
         }
         
@@ -749,6 +769,15 @@ namespace MyScheduler
                 {
                     LoadUserOnSetup = sForm.LoadUserOnSetup;
                     DefaultPath = sForm.LoadUserFilePath;
+
+                    XmlWriterSettings settings = new XmlWriterSettings();
+                    settings.Indent = true;
+                    XmlWriter writer = XmlWriter.Create(new FileStream("SettingsXML.xml",FileMode.Open), settings);
+                    writer.WriteStartDocument();
+                    SaveSettings(writer);
+                    writer.WriteEndDocument();
+                    writer.Flush();
+                    writer.Close();
                 }
             }
         }
