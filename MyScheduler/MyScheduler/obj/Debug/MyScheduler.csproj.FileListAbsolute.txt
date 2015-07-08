@@ -10,18 +10,3 @@ C:\Users\Steele\Documents\My Projects\MyScheduler\MyScheduler\obj\Debug\MySchedu
 C:\Users\Steele\Documents\My Projects\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddTaskForm.resources
 C:\Users\Steele\Documents\My Projects\MyScheduler\MyScheduler\obj\Debug\MyScheduler.UserSetup.resources
 C:\Users\Steele\Documents\My Projects\MyScheduler\MyScheduler\obj\Debug\MyScheduler.DateClock.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\bin\Debug\MyScheduler.exe
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\bin\Debug\MyScheduler.exe.config
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\bin\Debug\MyScheduler.pdb
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddMovie.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddTV.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.AddTaskForm.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.DateClock.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.MySchedulerForm.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.MediaInfo.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.Properties.Resources.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.SettingsForm.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.UserSetup.resources
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.csproj.GenerateResource.Cache
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.exe
-C:\Users\Steele\Documents\GitHub\MyScheduler\MyScheduler\MyScheduler\obj\Debug\MyScheduler.pdb

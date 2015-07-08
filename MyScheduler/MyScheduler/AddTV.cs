@@ -103,11 +103,11 @@ namespace MyScheduler
 
         private void BrowseButton_Click(object sender, EventArgs e)
         {
-            using(OpenFileDialog opDialog = new OpenFileDialog())
+            using(FolderBrowserDialog folderDialog = new FolderBrowserDialog())
             {
-                if (opDialog.ShowDialog() == DialogResult.OK)
+                if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
-                    URItextbox.Text = opDialog.FileName;
+                    URItextbox.Text = folderDialog.SelectedPath;
                 }
             }
         }

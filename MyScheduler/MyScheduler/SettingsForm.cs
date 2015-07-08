@@ -33,6 +33,7 @@ namespace MyScheduler
         {
             using (OpenFileDialog opDialog = new OpenFileDialog())
             {
+                opDialog.Filter = "xml file (*.xml)|*.xml";
                 if (opDialog.ShowDialog() == DialogResult.OK)
                 {
                     _loaduserfilepath = opDialog.FileName;

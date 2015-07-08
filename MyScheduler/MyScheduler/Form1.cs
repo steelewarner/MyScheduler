@@ -3,7 +3,7 @@
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
  * Last Updated: 7/6/2015
- * version: v0.7.10
+ * version: v0.8.12
  * ***********************************************************************/
 
 using System;
@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Xml.Linq;
+
 
 namespace MyScheduler
 {
@@ -104,6 +105,8 @@ namespace MyScheduler
                 User.TaskCreated += User_TaskCreated;
                 User.TaskRemoved += User_TaskRemoved;
                 User.PropertyChanged += User_PropertyChanged;
+                User.MediaAdded += User_MediaAdded;
+                User.MediaRemoved += User_MediaRemoved;
             }
         }
 
@@ -505,6 +508,7 @@ namespace MyScheduler
         {
             using (OpenFileDialog opDialog = new OpenFileDialog())
             {
+                opDialog.Filter = "xml file (*.xml)|*.xml";
                 if (opDialog.ShowDialog() == DialogResult.OK)
                 {
                     LoadUser(new FileStream(opDialog.FileName, FileMode.Open));
@@ -546,9 +550,7 @@ namespace MyScheduler
                     PreviousMonthButton.Visible = false;
                     NextMonthButton.Visible = false;
                     break;
-                case 2: //videoplayer = Process.Start("C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe");
-                    //videoplayer.WaitForInputIdle();
-                    MonthLabel.Visible = false;
+                case 2: MonthLabel.Visible = false;
                     PreviousMonthButton.Visible = false;
                     NextMonthButton.Visible = false;
                     break;
@@ -609,11 +611,22 @@ namespace MyScheduler
                 }
             }
         }
+        /// <summary>
+        /// Sets all controls' in panel1 visible property to false
+        /// </summary>
+        private void HidePanel1Controls()
+        {
+            foreach (Control c in panel1.Controls)
+            {
+                c.Visible = false;
+            }
+        }
 
         private void MediaList_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node.Tag == null)//Exits method if clicked node is one of the empty parent nodes
             {
+                HidePanel1Controls();
                 return;
             }
             //Sets the media info control information corresponding to the selected listview node
@@ -629,6 +642,7 @@ namespace MyScheduler
                     mediaInfo1.AirtimeLabel.Visible = true;
                     mediaInfo1.richTextBoxDescription.Text = obj.Description;//sets description
                     mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
+                    DisplayEpisodeFiles(obj.URI);
                     break;
                 case "TV Shows": var TVobj = e.Node.Tag as TVshow;
                     mediaInfo1.TitleLabel.Text = TVobj.Title;
@@ -639,6 +653,7 @@ namespace MyScheduler
                     mediaInfo1.AirtimeLabel.Visible = true;
                     mediaInfo1.richTextBoxDescription.Text = TVobj.Description;
                     mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
+                    DisplayEpisodeFiles(TVobj.URI);
                     break;
                 case "Movies": var MOVobj = e.Node.Tag as Movie;
                     mediaInfo1.TitleLabel.Text = MOVobj.Title;
@@ -650,6 +665,73 @@ namespace MyScheduler
                     mediaInfo1.richTextBoxDescription.Text = MOVobj.Description;
                     mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
                     break;
+            }
+        }
+
+        private void DisplayEpisodeFiles(Uri u)
+        {
+            if (Uri.UriSchemeFile == u.Scheme)
+            {
+               listBox1.Items.Clear();
+               HidePanel1Controls();
+               listBox1.Visible = true;
+               string[] filenames = Directory.GetFiles(u.LocalPath);
+               foreach (string s in filenames)
+               {
+                   listBox1.Items.Add(Path.GetFileName(s));
+               }
+            }
+            else if (Uri.UriSchemeHttp == u.Scheme || Uri.UriSchemeHttps == u.Scheme)
+            {
+                HidePanel1Controls();
+                webBrowser1.Visible = true;
+            }
+        }
+        
+        private void MediaList_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (null == e.Node.Tag)//Exits method if clicked node is one of the empty parent nodes
+            {
+                return;
+            }
+            //Sets the media info control information corresponding to the selected listview node
+            switch (e.Node.Parent.Text)
+            {
+                case "Anime": var obj = e.Node.Tag as Anime;//sets as anime object if in anime tree
+                    LaunchMedia(obj.URI);
+                    break;
+                case "TV Shows":
+                    var TVobj = e.Node.Tag as TVshow;//sets as anime object if in anime tree
+                    LaunchMedia(TVobj.URI);
+                    break;
+                case "Movies":
+                    var MOVobj = e.Node.Tag as Movie;//sets as anime object if in anime tree
+                    HidePanel1Controls();
+                    webBrowser1.Visible = true;
+                    webBrowser1.Url = new Uri("http://www.imdb.com/");
+                    break;
+            }
+        }
+
+        private void MediaList_DoubleClick(object sender, EventArgs e)
+        {
+
+        }
+        
+        private void LaunchMedia(Uri u)
+        {
+            if (Uri.UriSchemeFile == u.Scheme)
+            {
+                
+                videoplayer = Process.Start(u.AbsoluteUri);
+
+
+                //videoplayer = Process.Start("C:\\Program Files (x86)\\Daum\\PotPlayer\\PotPlayerMini.exe");
+                //videoplayer.WaitForInputIdle();
+            }
+            else if (Uri.UriSchemeHttp == u.Scheme || Uri.UriSchemeHttps == u.Scheme)
+            {
+                webBrowser1.Url = u;
             }
         }
 
@@ -900,6 +982,23 @@ namespace MyScheduler
             }
         }
 
-                 
+        private void listBox1_DoubleClick(object sender, EventArgs e)
+        {
+            if (null == listBox1.SelectedItem)
+            {
+                return;
+            }
+
+            try
+            {
+                TVshow tv = (TVshow)MediaList.SelectedNode.Tag;
+                videoplayer = Process.Start(tv.URI.AbsoluteUri + "/" + listBox1.SelectedItem.ToString());
+            }
+            catch(InvalidCastException)
+            {
+                return;
+            }
+        }
+         
     }
 }

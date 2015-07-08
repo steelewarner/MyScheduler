@@ -44,7 +44,6 @@
             this.ScheduleContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.removeTaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MediaTab = new System.Windows.Forms.TabPage();
-            this.mediaInfo1 = new MyScheduler.MediaInfo();
             this.MediaList = new System.Windows.Forms.TreeView();
             this.AddMediacontextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addAnimeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -63,6 +62,8 @@
             this.MonthLabel = new System.Windows.Forms.Label();
             this.NextMonthButton = new System.Windows.Forms.Button();
             this.PreviousMonthButton = new System.Windows.Forms.Button();
+            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.mediaInfo1 = new MyScheduler.MediaInfo();
             this.tabControl1.SuspendLayout();
             this.CalendarTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TaskCalendar)).BeginInit();
@@ -198,16 +199,6 @@
             this.MediaTab.Text = "Media";
             this.MediaTab.UseVisualStyleBackColor = true;
             // 
-            // mediaInfo1
-            // 
-            this.mediaInfo1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.mediaInfo1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.mediaInfo1.Location = new System.Drawing.Point(0, 363);
-            this.mediaInfo1.Name = "mediaInfo1";
-            this.mediaInfo1.Size = new System.Drawing.Size(620, 65);
-            this.mediaInfo1.TabIndex = 2;
-            // 
             // MediaList
             // 
             this.MediaList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -228,6 +219,8 @@
             this.MediaList.TabIndex = 1;
             this.MediaList.Tag = "";
             this.MediaList.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.MediaList_NodeMouseClick);
+            this.MediaList.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.MediaList_NodeMouseDoubleClick);
+            this.MediaList.DoubleClick += new System.EventHandler(this.MediaList_DoubleClick);
             this.MediaList.Resize += new System.EventHandler(this.MediaList_Resize);
             // 
             // AddMediacontextMenuStrip
@@ -272,6 +265,7 @@
             // 
             this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.listBox1);
             this.panel1.Controls.Add(this.webBrowser1);
             this.panel1.Location = new System.Drawing.Point(121, 2);
             this.panel1.Name = "panel1";
@@ -382,6 +376,26 @@
             this.PreviousMonthButton.UseVisualStyleBackColor = true;
             this.PreviousMonthButton.Click += new System.EventHandler(this.PreviousMonthButton_Click);
             // 
+            // listBox1
+            // 
+            this.listBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBox1.FormattingEnabled = true;
+            this.listBox1.Location = new System.Drawing.Point(0, 0);
+            this.listBox1.Name = "listBox1";
+            this.listBox1.Size = new System.Drawing.Size(500, 359);
+            this.listBox1.TabIndex = 1;
+            this.listBox1.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
+            // 
+            // mediaInfo1
+            // 
+            this.mediaInfo1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.mediaInfo1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.mediaInfo1.Location = new System.Drawing.Point(0, 363);
+            this.mediaInfo1.Name = "mediaInfo1";
+            this.mediaInfo1.Size = new System.Drawing.Size(620, 65);
+            this.mediaInfo1.TabIndex = 2;
+            // 
             // MySchedulerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -446,6 +460,7 @@
         private System.Windows.Forms.ContextMenuStrip ScheduleContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem removeTaskToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeMediaToolStripMenuItem;
+        private System.Windows.Forms.ListBox listBox1;
     }
 }
 
