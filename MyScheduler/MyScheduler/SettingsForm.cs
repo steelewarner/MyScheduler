@@ -14,19 +14,52 @@ namespace MyScheduler
     {
         private bool _loaduseronsetup;
         private string _loaduserfilepath;
+        private int bgcForm;
+        private int fgcForm;
+        private Font fontForm;
         
+        /// <summary>
+        /// Gets the bool value for if the user should be loaded on form setup
+        /// </summary>
         public bool LoadUserOnSetup
         {
             get { return _loaduseronsetup; }
         }
+        /// <summary>
+        /// Gets the path for the file that should be loaded on setup
+        /// </summary>
         public string LoadUserFilePath
         {
             get { return _loaduserfilepath; }
         }
 
+        public int FormBGC
+        {
+            get { return bgcForm; }
+        }
+        public int FormFGC
+        {
+            get { return fgcForm; }
+        }
+        public Font FormFont
+        {
+            get { return fontForm; }
+        }
+
         public SettingsForm()
         {
             InitializeComponent();
+            _loaduserfilepath = "";
+            _loaduseronsetup = false;
+        }
+        public SettingsForm(MySchedulerForm f)
+        {
+            InitializeComponent();
+            _loaduserfilepath = f.DefaultPath;
+            _loaduseronsetup = f.LoadUserOnSetup;
+            bgcForm = f.BackColor.ToArgb();
+            fgcForm = f.ForeColor.ToArgb();
+            fontForm = f.Font;
         }
 
         private void LoadUserBrowseButton_Click(object sender, EventArgs e)
@@ -60,8 +93,72 @@ namespace MyScheduler
 
         private void OKbutton_Click(object sender, EventArgs e)
         { 
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            
+            if (!_loaduseronsetup || Uri.UriSchemeFile == new Uri(_loaduserfilepath).Scheme)
+            {
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Invalid File Path", "Default File Path");
+            }
+        }
+
+        private void SettingsForm_Load(object sender, EventArgs e)
+        {
+            bgColorButton.BackColor = Color.FromArgb(bgcForm);
+            fgColorButton.BackColor = Color.FromArgb(fgcForm);
+            FontStyleButton.Font = fontForm;
+            FontStyleButton.Text = fontForm.Name;
+
+            if (_loaduseronsetup)
+            {
+                LoadUserCheckbox.Checked = true;//should trigger checked changed event
+                LoadUserTextbox.Text = _loaduserfilepath;
+
+            }
+        }
+
+        private void bgColorButton_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog cDialog = new ColorDialog())
+            {
+                if (cDialog.ShowDialog() == DialogResult.OK)
+                {
+                    bgcForm = cDialog.Color.ToArgb();
+                    bgColorButton.BackColor = cDialog.Color;
+                }
+            }
+        }
+
+        private void fgColorButton_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog cDialog = new ColorDialog())
+            {
+                if (cDialog.ShowDialog() == DialogResult.OK)
+                {
+                    fgcForm = cDialog.Color.ToArgb();
+                    fgColorButton.BackColor = cDialog.Color;
+                }
+            }
+        }
+
+        private void FontStyleButton_Click(object sender, EventArgs e)
+        {
+            using (FontDialog fDialog = new FontDialog())
+            {
+                fDialog.MaxSize = 12;
+                fDialog.MinSize = 8;
+                fDialog.Font = fontForm;
+                if (fDialog.ShowDialog() == DialogResult.OK)
+                {
+                    fontForm = fDialog.Font;
+
+                    FontStyleButton.Font = fDialog.Font;
+                    FontStyleButton.Text = fDialog.Font.Name;
+                }
+            }
         }
     }
 }

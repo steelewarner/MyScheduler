@@ -2,8 +2,8 @@
  * Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
- * Last Updated: 7/6/2015
- * version: v0.8.12
+ * Last Updated: 7/8/2015
+ * version: v0.9.12
  * ***********************************************************************/
 
 using System;
@@ -29,19 +29,35 @@ namespace MyScheduler
     {
         //private MySchedulerCalendar DataCalendar = new MySchedulerCalendar();
         private MySchedulerUser User;
-        private bool LoadUserOnSetup;
-        private string DefaultPath;
+        private bool _loaduseronsetup;
+        private string _defaultpath;
         private Process videoplayer;
         private DateTime CurrentDate;
+
         /// <summary>
         /// Value used for space between bordering controls
         /// </summary>
         private const int control_padding = 3;
+        /// <summary>
+        /// Gets the value for if the user should be loaded on setup
+        /// </summary>
+        public bool LoadUserOnSetup
+        {
+            get { return _loaduseronsetup; }
+        }
+        /// <summary>
+        /// Gets the default path for loading the user on setup
+        /// </summary>
+        public string DefaultPath
+        {
+            get { return _defaultpath; }
+        }
 
         public MySchedulerForm()
         {
             InitializeComponent();
             CurrentDate = DateTime.Today;
+            _defaultpath = "";
         }
 
         /// <summary>
@@ -87,53 +103,93 @@ namespace MyScheduler
             }
         }
 
-        private void LoadSettings()
+        private void LoadSetup()
         {
-            var reader = XDocument.Load("SettingsXML.xml");
+            using (FileStream f = new FileStream("SettingsXML.xml", FileMode.Open))
+            {
+                var doc = XDocument.Load(f);
 
-            LoadUserOnSetup = (bool)reader.Element("Settings").Element("LoadUserOnSetup");
-            
-            if (LoadUserOnSetup)
-            {
-                DefaultPath = reader.Element("Settings").Element("DefaultPath").Value;
-                LoadUser(new FileStream(DefaultPath, FileMode.Open));
-            }
-            else
-            {
-                User = new MySchedulerUser("", "John", "Doe");
-                User.Calendar.CreateFullCalendar(DateTime.Today.Year);
-                User.TaskCreated += User_TaskCreated;
-                User.TaskRemoved += User_TaskRemoved;
-                User.PropertyChanged += User_PropertyChanged;
-                User.MediaAdded += User_MediaAdded;
-                User.MediaRemoved += User_MediaRemoved;
+                _loaduseronsetup = (bool)doc.Element("Settings").Element("LoadUserOnSetup");
+
+                if (_loaduseronsetup)
+                {
+                    _defaultpath = doc.Element("Settings").Element("DefaultPath").Value;
+                    using (FileStream fs = new FileStream(_defaultpath, FileMode.Open))
+                    {
+                        LoadUser(fs);
+                        fs.Close();
+                    }
+                    using (FileStream fs = new FileStream(_defaultpath, FileMode.Open))
+                    {
+                        LoadSettings(fs);
+                        fs.Close();
+                    }  
+                }
+                else
+                {
+                    User = new MySchedulerUser("", "John", "Doe");
+                    User.Calendar.CreateFullCalendar(DateTime.Today.Year);
+                    User.TaskCreated += User_TaskCreated;
+                    User.TaskRemoved += User_TaskRemoved;
+                    User.PropertyChanged += User_PropertyChanged;
+                    User.MediaAdded += User_MediaAdded;
+                    User.MediaRemoved += User_MediaRemoved;
+                }
+                f.Close();
             }
         }
-
+        private void LoadSettings(Stream stm)
+        {
+            XDocument doc = XDocument.Load(stm);
+            _loaduseronsetup = (bool)doc.Element("Settings").Element("LoadUserOnSetup");
+            _defaultpath = doc.Element("Settings").Element("DefaultPath").Value;
+            var ele = doc.Element("MyScheduler").Element("Settings").Element("Form");
+            this.Font = StringToFont(ele.Element("Font").Value);
+            this.BackColor = Color.FromArgb((int)ele.Element("BackColor"));
+            this.ForeColor = Color.FromArgb((int)ele.Element("ForeColor"));
+        }
+        private void LoadSettings(XDocument doc)
+        {
+            _loaduseronsetup = (bool)doc.Element("MyScheduler").Element("Settings").Element("LoadUserOnSetup");
+            _defaultpath = doc.Element("MyScheduler").Element("Settings").Element("DefaultPath").Value;
+            var ele = doc.Element("MyScheduler").Element("Settings").Element("Form");
+            this.Font = StringToFont(ele.Element("Font").Value);
+            this.BackColor = Color.FromArgb((int)ele.Element("BackColor"));
+            this.ForeColor = Color.FromArgb((int)ele.Element("ForeColor"));
+        }
         private void LoadUser(Stream filepath)
         {
             var doc = XDocument.Load(filepath);
 
+            LoadUser(doc);
+        }
+        private void LoadUser(XDocument doc)
+        {
             var uElement = doc.Element("MyScheduler").Element("User");
             if (null == User)
             {
                 User = new MySchedulerUser(uElement.Attribute("username").Value,
                                             uElement.Attribute("firstname").Value,
                                             uElement.Attribute("lastname").Value);
+                User.TaskCreated += User_TaskCreated;
+                User.TaskRemoved += User_TaskRemoved;
+                User.PropertyChanged += User_PropertyChanged;
+                User.MediaAdded += User_MediaAdded;
+                User.MediaRemoved += User_MediaRemoved;
             }
             else
             {
                 User.Username = uElement.Attribute("username").Value;
                 User.FirstName = uElement.Attribute("firstname").Value;
                 User.LastName = uElement.Attribute("lastname").Value;
+                RemoveAllTasksUI();//clears UI of task and media objects from previous user
+                RemoveAllMediaNodesUI();
+                User.Tasklist.Clear();
+                User.Medialist.Clear();
             }
             User.Calendar.CreateFullCalendar(DateTime.Today.Year);
-            User.TaskCreated += User_TaskCreated;
-            User.TaskRemoved += User_TaskRemoved;
-            User.PropertyChanged += User_PropertyChanged;
-            User.MediaAdded += User_MediaAdded;
-            User.MediaRemoved += User_MediaRemoved;
-            
+
+
             //gets all task objects for tasklist
             Task t;
             foreach (XElement e in doc.Element("MyScheduler").Element("User").Elements("Task"))
@@ -211,7 +267,8 @@ namespace MyScheduler
                     User.AddMedia(m);
                 }
             }
-            filepath.Close();
+            LoadSettings(doc);
+            //filepath.Close();
         }
 
         private void User_MediaRemoved(object sender, EventArgs e)
@@ -296,16 +353,39 @@ namespace MyScheduler
 
             //Writes LoadUserOnSetup value to Settings xml file
             writer.WriteStartElement("LoadUserOnSetup");
-            writer.WriteValue(LoadUserOnSetup);
+            writer.WriteValue(_loaduseronsetup);
             writer.WriteEndElement();
 
             //Writes default path to load user on setup
             writer.WriteStartElement("DefaultPath");
-            writer.WriteValue(DefaultPath);
+            writer.WriteValue(_defaultpath);
+            writer.WriteEndElement();
+
+            //Writes Form color and font properties
+            writer.WriteStartElement("Form");
+            writer.WriteStartElement("BackColor");
+            writer.WriteValue(this.BackColor.ToArgb());
+            writer.WriteEndElement();
+            writer.WriteStartElement("ForeColor");
+            writer.WriteValue(this.ForeColor.ToArgb());
+            writer.WriteEndElement();
+            writer.WriteStartElement("Font");
+            writer.WriteValue(FontToString(this.Font));
+            writer.WriteEndElement();
             writer.WriteEndElement();
             //Will add more settings later
 
             writer.WriteEndElement();
+        }
+        private string FontToString(Font f)
+        {
+            TypeConverter conv = TypeDescriptor.GetConverter(typeof(Font));
+            return conv.ConvertToString(f);
+        }
+        private Font StringToFont(string s)
+        {
+            TypeConverter conv = TypeDescriptor.GetConverter(typeof(Font));
+            return (Font)conv.ConvertFromString(s);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -355,7 +435,7 @@ namespace MyScheduler
             /******************************
                      Load Settings
              ******************************/
-            LoadSettings();
+            LoadSetup();
         }
 
         void User_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -511,7 +591,11 @@ namespace MyScheduler
                 opDialog.Filter = "xml file (*.xml)|*.xml";
                 if (opDialog.ShowDialog() == DialogResult.OK)
                 {
-                    LoadUser(new FileStream(opDialog.FileName, FileMode.Open));
+                    using (FileStream f = new FileStream(opDialog.FileName, FileMode.Open))
+                    {
+                        LoadUser(f);
+                        f.Close();
+                    }
                 }
             }
         }
@@ -840,28 +924,62 @@ namespace MyScheduler
                 mediaInfo1.AirtimeLabel.Visible = false;
                 mediaInfo1.richTextBoxDescription.Text = "";//sets description
                 mediaInfo1.MediaInfo_Resize(mediaInfo1, new EventArgs());//Sets label in their correct positions
+
+                listBox1.Visible = false;
+
             }
         }
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (SettingsForm sForm = new SettingsForm())
+            using (SettingsForm sForm = new SettingsForm(this))
             {
                 if (sForm.ShowDialog() == DialogResult.OK)
                 {
-                    LoadUserOnSetup = sForm.LoadUserOnSetup;
-                    DefaultPath = sForm.LoadUserFilePath;
+                    _loaduseronsetup = sForm.LoadUserOnSetup;
+                    _defaultpath = sForm.LoadUserFilePath;
+                    this.Font = sForm.FormFont;
+                    this.BackColor = Color.FromArgb(sForm.FormBGC);
+                    this.ForeColor = Color.FromArgb(sForm.FormFGC);
+
+                    XDocument doc = new XDocument();
 
                     XmlWriterSettings settings = new XmlWriterSettings();
                     settings.Indent = true;
-                    XmlWriter writer = XmlWriter.Create(new FileStream("SettingsXML.xml",FileMode.Open), settings);
+
+                    XmlWriter writer = doc.CreateWriter();
                     writer.WriteStartDocument();
-                    SaveSettings(writer);
+                    SaveSetup(writer);
                     writer.WriteEndDocument();
                     writer.Flush();
                     writer.Close();
+                    using (FileStream f = new FileStream("SettingsXML.xml", FileMode.Create))
+                    {
+                        doc.Save(f);
+                        f.Close();
+                    }
                 }
             }
+        }
+        /// <summary>
+        /// Saves setup settings to settings xml file in solution
+        /// </summary>
+        /// <param name="writer">XmlWriter used to write to settings file</param>
+        private void SaveSetup(XmlWriter writer)
+        {
+            writer.WriteStartElement("Settings");
+
+            //Writes LoadUserOnSetup value to Settings xml file
+            writer.WriteStartElement("LoadUserOnSetup");
+            writer.WriteValue(_loaduseronsetup);
+            writer.WriteEndElement();
+
+            //Writes default path to load user on setup
+            writer.WriteStartElement("DefaultPath");
+            writer.WriteValue(_defaultpath);
+            writer.WriteEndElement();
+
+            writer.WriteEndElement();
         }
 
         private void saveUserToolStripMenuItem_Click(object sender, EventArgs e)
@@ -999,6 +1117,34 @@ namespace MyScheduler
                 return;
             }
         }
-         
+
+        private void MySchedulerForm_BackColorChanged(object sender, EventArgs e)
+        {
+            Toolbar.BackColor = this.BackColor;
+        }
+        
+        private void RemoveAllTasksUI()
+        {
+            ListViewSchedule.Items.Clear();
+
+            while (TaskCalendar.Rows.Count > 0)
+            {
+                TaskCalendar.Rows.RemoveAt(0);
+            }
+            TaskCalendar.Rows.Add(5);
+            ResizeTaskCalendarRows();
+            AddDatesToCalendar(CurrentDate);
+        }
+
+        private void RemoveAllMediaNodesUI()
+        {
+            foreach (TreeNode n in MediaList.Nodes)
+            {
+                while (n.Nodes.Count > 0)
+                {
+                    n.FirstNode.Remove();
+                }
+            }
+        }
     }
 }
