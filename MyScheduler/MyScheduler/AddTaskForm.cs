@@ -29,6 +29,12 @@ namespace MyScheduler
             _desc = "";
             _course = "";
             _materialcovered = "";
+            dateClock1.textBox1.Text = Date.Month.ToString();
+            dateClock1.textBox2.Text = Date.Day.ToString();
+            dateClock1.textBox3.Text = Date.Year.ToString();
+            dateClock1.textBox4.Text = Date.Hour.ToString();
+            dateClock1.textBox5.Text = Date.Minute.ToString();
+            dateTimePicker1.Value = day;
         }
 
         private DateTime _date;
@@ -147,11 +153,7 @@ namespace MyScheduler
         private void AddTaskForm_Load(object sender, EventArgs e)
         {
             textBox4.Text = "MM/DD/YYYY";
-            dateClock1.textBox1.Text = "MM";
-            dateClock1.textBox2.Text = "DD";
-            dateClock1.textBox3.Text = "YYYY";
-            dateClock1.textBox4.Text = "24";
-            dateClock1.textBox5.Text = "00";
+            
             DisplayAssignmentUI();
             listBox1.SelectedItem = listBox1.Items[0];
         }

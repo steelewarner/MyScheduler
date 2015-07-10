@@ -121,6 +121,7 @@
             this.TaskCalendar.DefaultCellStyle = dataGridViewCellStyle1;
             this.TaskCalendar.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TaskCalendar.Location = new System.Drawing.Point(3, 3);
+            this.TaskCalendar.MultiSelect = false;
             this.TaskCalendar.Name = "TaskCalendar";
             this.TaskCalendar.ReadOnly = true;
             this.TaskCalendar.RightToLeft = System.Windows.Forms.RightToLeft.No;

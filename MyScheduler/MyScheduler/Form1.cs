@@ -3,7 +3,7 @@
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
  * Last Updated: 7/8/2015
- * version: v0.9.12
+ * version: v0.10.13
  * ***********************************************************************/
 
 using System;
@@ -302,7 +302,7 @@ namespace MyScheduler
             if ((int)MonthLabel.Tag == t.Date.Month)
             {
                 DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.Date);
-                int row = (int)(t.Date.Day / 7);//finds corresponding row from month and date
+                int row = (int)(((int)firstday + t.Date.Day) / 7);//finds corresponding row from month and date
                 int column = ((int)firstday + t.Date.Day - 1) % 7;//finds corresponding column from month and date
                 TaskCalendar.Rows[row].Cells[column].Value += t.Name + Environment.NewLine;
                 if (TaskCalendar.Rows[row].Cells[column].Tag is List<Task>)
@@ -574,14 +574,58 @@ namespace MyScheduler
 
         private void addTaskToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (AddTaskForm addForm = new AddTaskForm())
+            if (isDay(TaskCalendar.SelectedCells[0].RowIndex, TaskCalendar.SelectedCells[0].ColumnIndex))
             {
-                if (addForm.ShowDialog() == DialogResult.OK)
+                using (AddTaskForm addForm = new AddTaskForm(DayFromCalendar(TaskCalendar.SelectedCells[0].RowIndex,
+                                                                TaskCalendar.SelectedCells[0].ColumnIndex,
+                                                                CurrentDate)))
                 {
-                    User.AddTask(addForm.GetSelectedTask());
-                    //User.Calendar.GetMonth(addForm.Date.Month).GetDay(addForm.Date.Day).AddTask(addForm.GetSelectedTask());
+                    if (addForm.ShowDialog() == DialogResult.OK)
+                    {
+                        User.AddTask(addForm.GetSelectedTask());
+                        //User.Calendar.GetMonth(addForm.Date.Month).GetDay(addForm.Date.Day).AddTask(addForm.GetSelectedTask());
+                    }
                 }
             }
+            else
+            {
+                using (AddTaskForm addForm = new AddTaskForm())
+                {
+                    if (addForm.ShowDialog() == DialogResult.OK)
+                    {
+                        User.AddTask(addForm.GetSelectedTask());
+                        //User.Calendar.GetMonth(addForm.Date.Month).GetDay(addForm.Date.Day).AddTask(addForm.GetSelectedTask());
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Checks if the given row and column of the given month and year is a day of that month
+        /// </summary>
+        /// <param name="row">Row of the selected cell</param>
+        /// <param name="column">Column of the selected cell</param>
+        /// <returns>bool: true if it is a day, false if it is a blank space</returns>
+        private bool isDay(int row, int column)
+        {
+            //I decided to go with checking if the cell is blank rather than
+            //A mathematical approach of checking if the cell is before the first day
+            //or the cell is past the last day due to the fact that I will most
+            //Likeley keep the calendar display the way it is now
+
+            return (null != TaskCalendar.Rows[row].Cells[column].Value);
+        }
+        /// <summary>
+        /// Finds the day of the month from the row and column
+        /// </summary>
+        /// <param name="row">Row index of the cell</param>
+        /// <param name="column">Column index of the cell</param>
+        /// <param name="dt">Corresponding Datetime</param>
+        /// <returns>New Datetime of the day</returns>
+        private DateTime DayFromCalendar(int row, int column, DateTime dt)
+        {
+            DayOfWeek firstday = MySchedulerMonth.FindFirstDay(dt);
+            int day = (7 * row) - (int)firstday + column + 1;
+            return new DateTime(dt.Year, dt.Month, day);
         }
 
         private void loadUserToolStripMenuItem_Click(object sender, EventArgs e)
