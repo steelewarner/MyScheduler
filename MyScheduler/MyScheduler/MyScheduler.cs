@@ -1,7 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
- * Last Updated: 7/20/15
+ * Last Updated: 8/6/15
  */
 using System;
 using System.Collections.Generic;
