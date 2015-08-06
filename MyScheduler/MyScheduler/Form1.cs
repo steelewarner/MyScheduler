@@ -3,7 +3,7 @@
  * Created: June 9, 2015
  * Info: This is the Form program for the base UI for MyScheduler app
  * Last Updated: 7/8/2015
- * version: v0.10.13
+ * version: v0.10.14
  * ***********************************************************************/
 
 using System;
@@ -165,6 +165,15 @@ namespace MyScheduler
         }
         private void LoadUser(XDocument doc)
         {
+            try
+            {
+                var uE = doc.Element("MyScheduler").Element("User");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("File does not store any data for MyScheduler", "Invalid File");
+                return;
+            }
             var uElement = doc.Element("MyScheduler").Element("User");
             if (null == User)
             {
@@ -188,7 +197,7 @@ namespace MyScheduler
                 User.Medialist.Clear();
             }
             User.Calendar.CreateFullCalendar(DateTime.Today.Year);
-
+            this.Text = User.FirstName + " " + User.LastName;
 
             //gets all task objects for tasklist
             Task t;
@@ -302,7 +311,7 @@ namespace MyScheduler
             if ((int)MonthLabel.Tag == t.Date.Month)
             {
                 DayOfWeek firstday = MySchedulerMonth.FindFirstDay(t.Date);
-                int row = (int)(((int)firstday + t.Date.Day) / 7);//finds corresponding row from month and date
+                int row = (int)(((int)firstday + t.Date.Day - 1) / 7);//finds corresponding row from month and date
                 int column = ((int)firstday + t.Date.Day - 1) % 7;//finds corresponding column from month and date
                 TaskCalendar.Rows[row].Cells[column].Value += t.Name + Environment.NewLine;
                 if (TaskCalendar.Rows[row].Cells[column].Tag is List<Task>)
@@ -438,7 +447,7 @@ namespace MyScheduler
             LoadSetup();
         }
 
-        void User_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void User_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             this.Text = User.FirstName + " " + User.LastName;
         }
@@ -660,10 +669,24 @@ namespace MyScheduler
 
         private void ListViewSchedule_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            if (e.Column == 2)
+            switch (e.Column)
             {
-                //sorting algorithm of choice for date
+                case 1:
+                    break;
+                case 2:
+                    SortTaskScheduleByColumn();
+                    break;
             }
+        }
+        private void SortTaskScheduleByColumn()
+        {
+            ListViewSchedule.BeginUpdate();
+            ListViewItem[] tArray = new ListViewItem[ListViewSchedule.Items.Count];
+            ListViewSchedule.Items.CopyTo(tArray, 0);
+            MyScheduler.Sorting.Quicksort(ref tArray);
+            ListViewSchedule.Items.Clear();
+            ListViewSchedule.Items.AddRange(tArray);
+            ListViewSchedule.EndUpdate();
         }
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)

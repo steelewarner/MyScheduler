@@ -1,7 +1,7 @@
 ﻿/* Author: Steele Warner
  * Created: June 9, 2015
  * Info: This is the class library for MyScheduler app. It includes User, Task, Media, and Calenedar objects
- * Last Updated: 7/6/15
+ * Last Updated: 7/20/15
  */
 using System;
 using System.Collections.Generic;
@@ -25,9 +25,9 @@ namespace MyScheduler
         /// <param name="lname">Last name of new user</param>
         public MySchedulerUser(string username, string fname, string lname)
         {
-            _username = username;
-            _firstname = fname;
-            _lastname = lname;
+            Username = username;
+            FirstName = fname;
+            LastName = lname;
             _taskList = new List<Task>();
             _medialist = new List<Media>();
             _calendar = new MySchedulerCalendar();
@@ -273,7 +273,7 @@ namespace MyScheduler
     /// <summary>
     /// Base Task class for object used in to-do list, calendar
     /// </summary>
-    public abstract class Task
+    public abstract class Task : IComparer<Task>
     {
         protected Task(string name, string description)
         {
@@ -288,6 +288,21 @@ namespace MyScheduler
                     && this.Date.Equals(((Task)obj).Date)) 
             { return true; }
             return false;
+        }
+        int IComparer<Task>.Compare(Task x, Task y)
+        {
+            if (x < y)
+            {
+                return -1;
+            }
+            else if (x > y)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public event EventHandler TaskCompleted;
@@ -358,6 +373,33 @@ namespace MyScheduler
             }
         }
         /// <summary>
+        /// Compares if this task object date is before or equal to the given task parameter
+        /// </summary>
+        /// <param name="t">Compared Task object</param>
+        /// <returns></returns>
+        public bool isBeforeOrEqual(Task t)
+        {
+            if (this.Date.CompareTo(t.Date) <= 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Compares if this task object date is before the given task parameter
+        /// </summary>
+        /// <param name="t">Compared Task object</param>
+        /// <returns></returns>
+        public bool isBefore(Task t)
+        {
+            if (this.Date.CompareTo(t.Date) < 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Converts a string to PriorityStatus
         /// </summary>
         /// <param name="str">string to be converted</param>
@@ -371,6 +413,39 @@ namespace MyScheduler
                 case "Low": return PriorityStatus.Low;
             }
             return 0;
+        }
+
+        public static bool operator<(Task ltask, Task rtask)
+        {
+            if (ltask.Date.CompareTo(rtask.Date) < 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool operator>(Task ltask, Task rtask)
+        {
+            if (ltask.Date.CompareTo(rtask.Date) > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool operator<=(Task ltask, Task rtask)
+        {
+            if (ltask.Date.CompareTo(rtask.Date) <= 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool operator>=(Task ltask, Task rtask)
+        {
+            if (ltask.Date.CompareTo(rtask.Date) >= 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -1198,4 +1273,154 @@ namespace MyScheduler
     }
 
     #endregion Calendar
+
+    #region Sorting
+
+    public static class Sorting
+    {
+        /// <summary>
+        /// Swaps references for two different items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="itm1"></param>
+        /// <param name="itm2"></param>
+        public static void Swap<T>(ref T itm1, ref T itm2)
+        {
+            T temp = itm1;
+            itm1 = itm2;
+            itm2 = temp;
+        }
+
+        /// <summary>
+        /// Creates a subarray of the given object array with the designated start and end indices
+        /// </summary>
+        /// <param name="obj">Object array</param>
+        /// <param name="startingIndex">Startin index of subarray</param>
+        /// <param name="endIndex">Ending index of subarray</param>
+        /// <returns></returns>
+        private static object[] SubArray(object[] obj, int startingIndex, int endIndex)
+        {
+            if (endIndex <= startingIndex || endIndex >= obj.Length)
+            {
+                return null;
+            }
+
+            object[] nObj = new object[endIndex - startingIndex];
+            for (int i = startingIndex; i <= endIndex; i++)
+            {
+                nObj[i] = obj[i];
+            }
+            return nObj;
+        }
+        /// <summary>
+        /// Sorts a collection of tasks using quicksort algorithm
+        /// </summary>
+        /// <param name="collection">Collection of tasked to be sorted</param>
+        public static void Quicksort(ref System.Windows.Forms.ListViewItem[] collection)
+        {
+            if (null == collection || 0 == collection.Length)//returns if array is empty or null
+            {
+                throw new ArgumentNullException("collection", "Cannot sort array of type null or an empty list");
+            }
+            
+            //Task[] tCol = new Task[collection.Length];//new array that will be sorted version of collection
+            int i = 0, pivot = 0, j = collection.Length - 1;//pivot and indexers
+            int sIndex = i; //starting index for recursive quicksort call
+            Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[pivot], ref collection[collection.Length - 1]);//swaps pivot and last index
+            pivot = collection.Length - 1;//sets pivot int to corresponding index
+            j = pivot - 1;//sets j to 1 less than pivot
+
+            while (i < collection.Length)
+            {
+                if ((Task)collection[i].Tag >= (Task)collection[pivot].Tag || i >= j)
+                {
+                    Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[i], ref collection[j]);
+                    j--;
+                    if (i >= j)
+                    {
+                        if ((Task)collection[i].Tag > (Task)collection[pivot].Tag)
+                        {
+                            Sorting.Swap <System.Windows.Forms.ListViewItem>(ref collection[i], ref collection[pivot]);
+                            //sort pivot group
+                            QShelper(ref collection, sIndex, i);
+                            pivot = i + 1;//first index of unsorted subarray
+                            sIndex = i + 1;//new starting index for subarray
+                        }
+                        else//includes final item in subarray if <= pivot
+                        {
+                            Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[i + 1], ref collection[pivot]);
+                            //sort pivot group
+                            QShelper(ref collection, sIndex, i + 1);
+                            pivot = i + 2;//first index of unsorted subarray
+                            sIndex = i + 2;//new starting index for subarray
+                        }
+
+                        if (pivot >= collection.Length)
+                        {
+                            return;
+                        }
+                        Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[pivot], ref collection[collection.Length - 1]);//swaps pivot and last index
+                        pivot = collection.Length - 1;//sets pivot int to corresponding index
+                        j = pivot - 1;//sets j to 1 less than pivot
+                        
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+        private static void QShelper(ref System.Windows.Forms.ListViewItem[] collection, int sIndex, int eIndex)
+        {
+            if (eIndex < sIndex)
+            {
+                return;
+            }
+
+            int i = sIndex, pivot = sIndex, j = eIndex;//pivot and indexers
+
+            Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[pivot], ref collection[eIndex]);//swaps pivot and last index
+            pivot = eIndex;//sets pivot int to corresponding index
+            j = pivot - 1;//sets j to 1 less than pivot
+
+            while (i < eIndex)
+            {
+                if ((Task)collection[i].Tag >= (Task)collection[pivot].Tag)
+                {
+                    Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[i], ref collection[j]);
+                    j--;
+                    if (i >= j)
+                    {
+                        if ((Task)collection[i].Tag > (Task)collection[pivot].Tag)
+                        {
+                            Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[i], ref collection[pivot]);
+                            //sort pivot group
+                            QShelper(ref collection, sIndex, i);
+                            pivot = i + 1;//first index of unsorted subarray
+                            sIndex = i + 1;//new starting index for subarray
+                        }
+                        else//includes final item in subarray if <= pivot
+                        {
+                            Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[i + 1], ref collection[pivot]);
+                            //sort pivot group
+                            QShelper(ref collection, sIndex, i + 1);
+                            pivot = i + 2;//first index of unsorted subarray
+                            sIndex = i + 2;//new starting index for subarray
+                        }
+
+                        Sorting.Swap<System.Windows.Forms.ListViewItem>(ref collection[pivot], ref collection[eIndex]);//swaps pivot and last index
+                        pivot = eIndex;//sets pivot int to corresponding index
+                        j = pivot - 1;//sets j to 1 less than pivot
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+    }
+
+    #endregion Sorting
 }
